@@ -2,6 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Sequence, String
 
 Base = declarative_base()
+Base.metadata.schema = "tempdb"
 
 class Data(Base):
   __tablename__ = "data"
