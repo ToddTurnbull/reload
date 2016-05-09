@@ -2,6 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Sequence, String
 
 Base = declarative_base()
+Base.metadata.schema = "tempdb"
 
 class Data(Base):
   __tablename__ = "data"
@@ -100,8 +101,21 @@ class Data(Base):
   historyofupdate = Column(String(10))
   lastmodified = Column(String)
   org1_sort = Column(String(100))
-  id = Column(Integer, Sequence("data_id_seq"), primary_key=True)
+  id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer)
 
   def __repr__(self):
     return "<Data (RecordNumber='{}')>".format(self.recordnumber)
+
+class Thes(Base):
+  __tablename__ = "thes"
+
+  id = Column(Integer, primary_key=True)
+  term = Column(String(60), nullable=False)
+  note = Column(String, nullable=False)
+  action = Column(String(6))
+  cat_id = Column(Integer)
+  sort = Column(String(6))
+
+  def __repr__(self):
+    return "<Thes (Term='{}')>".format(self.term)
