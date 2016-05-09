@@ -1,16 +1,23 @@
+from sqlalchemy import CheckConstraint
+from sqlalchemy import Column
+from sqlalchemy import Integer
+from sqlalchemy import Sequence
+from sqlalchemy import String
+
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, Sequence, String
 
 Base = declarative_base()
 Base.metadata.schema = "tempdb"
 
 class Data(Base):
   __tablename__ = "data"
-
-  recordnumber = Column(String(5))
+  recordnumber = Column(String(5), nullable=False, unique=True)
   internalmemo = Column(String)
   comments = Column(String)
-  recnum = Column(String(7))
+  recnum = Column(String(7),
+    nullable=False, unique=True,
+    CheckConstraint("left(RecNum, 3) = 'WRN'")
+  )
   org1 = Column(String(100))
   org2 = Column(String(70))
   org3 = Column(String(70))
@@ -102,20 +109,32 @@ class Data(Base):
   lastmodified = Column(String)
   org1_sort = Column(String(100))
   id = Column(Integer, primary_key=True)
-  org_name_id = Column(Integer)
-
+  org_name_id = Column(Integer nullable=False)
   def __repr__(self):
     return "<Data (RecordNumber='{}')>".format(self.recordnumber)
 
 class Thes(Base):
   __tablename__ = "thes"
-
   id = Column(Integer, primary_key=True)
   term = Column(String(60), nullable=False)
   note = Column(String, nullable=False)
   action = Column(String(6))
   cat_id = Column(Integer)
   sort = Column(String(6))
-
   def __repr__(self):
     return "<Thes (Term='{}')>".format(self.term)
+
+class ThesCat(Base):
+  __tablename__ = "thes_cat"
+  id = Column(Integer, primary_key=True)
+  category = Column(String(30), nullable=False)
+  def __repr__(self):
+    return "<ThesCat (Category='{}')>".format(self.category)
+
+class ThesTree(Base):
+  id = Column(Integer, primary_key=True)
+  term = Column(String, nullable=False)
+  parent_id = Column(Integer)
+  cat_id = Column(Integer, nullable=False)
+  def __repr__(self):
+    return "<ThesTree (Term='{}')>".format(self.term)
