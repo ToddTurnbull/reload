@@ -867,7 +867,7 @@ create table taxTemp (
   created date null,
   modified date null,
   parentCode varchar(19) null
-)
+);
 
 
 \copy data from 'unload/172.dat' csv quote '''' encoding 'WIN1252';
@@ -918,3 +918,30 @@ create table taxTemp (
 \copy org_del from 'unload/230.dat' csv quote '''' encoding 'WIN1252';
 \copy pub_org from 'unload/231.dat' csv quote '''' encoding 'WIN1252';
 \copy thes_original from 'unload/232.dat' csv quote '''' encoding 'WIN1252';
+\copy thes_rel from 'unload/242.dat' csv quote '''' encoding 'WIN1252';
+\copy org_thes from 'unload/245.dat' csv quote '''' encoding 'WIN1252';
+\copy pub_entry from 'unload/247.dat' csv quote '''' encoding 'WIN1252';
+\copy area from 'unload/248.dat' csv quote '''' encoding 'WIN1252';
+\copy taxonomy_original from 'unload/251.dat' csv quote '''' encoding 'WIN1252';
+\copy taxonomy from 'unload/252.dat' csv quote '''' encoding 'WIN1252';
+\copy taxTree from 'unload/253.dat' csv quote '''' encoding 'WIN1252';
+\copy taxRel from 'unload/254.dat' csv quote '''' encoding 'WIN1252';
+\copy org_tax from 'unload/255.dat' csv quote '''' encoding 'WIN1252';
+\copy locations from 'unload/272.dat' csv quote '''' encoding 'WIN1252';
+\copy pubGroupName from 'unload/294.dat' csv quote '''' encoding 'WIN1252';
+\copy pubGroup from 'unload/295.dat' csv quote '''' encoding 'WIN1252';
+\copy orgNotes from 'unload/297.dat' csv quote '''' encoding 'WIN1252';
+\copy orgNoteTypes from 'unload/298.dat' csv quote '''' encoding 'WIN1252';
+\copy pubThes from 'unload/299.dat' csv quote '''' encoding 'WIN1252';
+\copy orgMod from 'unload/338.dat' csv quote '''' encoding 'WIN1252';
+\copy orgModColumns from 'unload/339.dat' csv quote '''' encoding 'WIN1252';
+\copy taxGroups from 'unload/341.dat' csv quote '''' encoding 'WIN1252';
+\copy temptaxgroup from 'unload/342.dat' csv quote '''' encoding 'WIN1252';
+\copy taxChanges from 'unload/343.dat' csv quote '''' encoding 'WIN1252';
+\copy taxGroup from 'unload/349.dat' csv quote '''' encoding 'WIN1252';
+\copy orgUpdated from 'unload/350.dat' csv quote '''' encoding 'WIN1252';
+\copy taxLink from 'unload/356.dat' csv quote '''' encoding 'WIN1252';
+\copy orgTaxLink from 'unload/357.dat' csv quote '''' encoding 'WIN1252';
+\copy taxLinkNote from 'unload/358.dat' csv quote '''' encoding 'WIN1252';
+\copy taxTemp from 'unload/360.dat' csv quote '''' encoding 'WIN1252';
+
