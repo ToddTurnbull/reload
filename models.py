@@ -3,6 +3,7 @@ from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy import Integer
+from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import Sequence
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
@@ -171,3 +172,20 @@ class Pub(Base):
   note = Column(String)
   def __repr__(self):
     return "<Pub (Code='{}', Title='{}')>".format(self.code, self.title)
+
+class ThesRelated(Base):
+  __tablename__ = "thes_related"
+  thes_id = Column(Integer, nullable=False)
+  related_id = Column(Integer, nullable=False)
+  __table_args__ = (
+    PrimaryKeyConstraint("thes_id", "related_id"),
+  )
+  def __repr__(self):
+    return "<ThesRelated (Thes='{}', Related='{}')>".format(self.thes_id, self.related_id)
+
+class BlueEntry(Base):
+  __tablename__ = "blue_entry"
+  entry = Column(Integer, nullable=False, unique=True)
+  data_id = Column(Integer, primary_key=True)
+  def __repr__(self):
+    return "<BlueEntry (Entry='{}', Data='{}')>".format(self.entry, self.data_id)
