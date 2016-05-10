@@ -1,8 +1,11 @@
+from sqlalchemy import Boolean
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
+from sqlalchemy import DateTime
 from sqlalchemy import Integer
 from sqlalchemy import Sequence
 from sqlalchemy import String
+from sqlalchemy import UniqueConstraint
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -15,8 +18,8 @@ class Data(Base):
   internalmemo = Column(String)
   comments = Column(String)
   recnum = Column(String(7),
-    nullable=False, unique=True,
-    CheckConstraint("left(RecNum, 3) = 'WRN'")
+    CheckConstraint("left(RecNum, 3) = 'WRN'"),
+    nullable=False, unique=True
   )
   org1 = Column(String(100))
   org2 = Column(String(70))
@@ -109,7 +112,7 @@ class Data(Base):
   lastmodified = Column(String)
   org1_sort = Column(String(100))
   id = Column(Integer, primary_key=True)
-  org_name_id = Column(Integer nullable=False)
+  org_name_id = Column(Integer, nullable=False)
   def __repr__(self):
     return "<Data (RecordNumber='{}')>".format(self.recordnumber)
 
@@ -132,9 +135,39 @@ class ThesCat(Base):
     return "<ThesCat (Category='{}')>".format(self.category)
 
 class ThesTree(Base):
+  __tablename__ = "thes_tree"
   id = Column(Integer, primary_key=True)
   term = Column(String, nullable=False)
   parent_id = Column(Integer)
   cat_id = Column(Integer, nullable=False)
   def __repr__(self):
     return "<ThesTree (Term='{}')>".format(self.term)
+
+class ThesData(Base):
+  __tablename__ = "thes_data"
+  id = Column(Integer, primary_key=True)
+  thes_id = Column(Integer, nullable=False)
+  data_id = Column(Integer, nullable=False)
+  __table_args__ = (
+    UniqueConstraint("thes_id", "data_id"),
+  )
+  def __repr__(self):
+    return "<ThesData (Thes='{}', Data='{}')>".format(self.thes_id, self.data_id)
+
+class City(Base):
+  __tablename__ = "city"
+  id = Column(Integer, primary_key=True)
+  city = Column(String(20), nullable=False)
+  def __repr__(self):
+    return "<City (City='{}')>".format(self.city)
+
+class Pub(Base):
+  __tablename__ = "pub"
+  id = Column(Integer, primary_key=True)
+  code = Column(String(20), nullable=False, unique=True)
+  title = Column(String(50), nullable=False)
+  isdefault = Column(Boolean, nullable=False, default=False)
+  lastUpdated = Column(DateTime)
+  note = Column(String)
+  def __repr__(self):
+    return "<Pub (Code='{}', Title='{}')>".format(self.code, self.title)
