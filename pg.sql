@@ -384,4 +384,3 @@ create table trelServiceArea (
 \copy trelServiceLanguage from 'unload/207.dat' csv quote '''' encoding 'WIN1252';
 \copy tlkpArea from 'unload/208.dat' csv quote '''' encoding 'WIN1252';
 \copy trelServiceArea from 'unload/209.dat' csv quote '''' encoding 'WIN1252';
-
