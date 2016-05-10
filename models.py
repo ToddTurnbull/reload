@@ -189,3 +189,37 @@ class BlueEntry(Base):
   data_id = Column(Integer, primary_key=True)
   def __repr__(self):
     return "<BlueEntry (Entry='{}', Data='{}')>".format(self.entry, self.data_id)
+
+class ThesReject(Base):
+  __tablename__ = "thes_reject"
+  thes_id = Column(Integer, nullable=False)
+  accept_id = Column(Integer, nullable=False)
+  # SQLAlchemy needs a primary key
+  __table_args__ = (
+    PrimaryKeyConstraint("thes_id", "accept_id"),
+  )
+  def __repr__(self):
+    return "<ThesReject (Thes='{}', Accept='{}')>".format(self.thes_id, self.accept_id)
+
+class ThesBlueEntry(Base):
+  __tablename__ = "thes_blue_entry"
+  thes_id = Column(Integer, nullable=False)
+  entry = Column(Integer, nullable=False)
+  __table_args__ = (
+    PrimaryKeyConstraint("thes_id", "entry"),
+  )
+  def __repr__(self):
+    return "<ThesBlueEntry (Thes='{}', Entry='{}')>".format(self.thes_id, self.entry)
+
+class ThesBlue(Base):
+  __tablename__ = "thes_blue"
+  thes_id = Column(Integer, primary_key=True)
+  def __repr__(self):
+    return "<ThesBlue (Thes='{}')>".format(self.thes_id)
+
+class OldBlueEntry(Base):
+  __tablename__ = "old_blue_entry"
+  entry = Column(Integer, primary_key=True)
+  data_id = Column(Integer, nullable=False)
+  def __repr__(self):
+    return "<OldBlueEntry (Entry='{}', Data='{}')".format(self.entry, self.data_id)
