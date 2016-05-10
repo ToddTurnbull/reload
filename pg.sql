@@ -356,6 +356,79 @@ create table trelServiceArea (
   primary key (ServiceID, AreaID)
 );
 
+-- skipping Level integer null COMPUTE ((length(sort_key)-1)/5)
+create table tblOrgName (
+  ID serial primary key,
+  OrgNameTypeID integer not null,
+  Name varchar(100) not null check(length(name) > 0),
+  ParentID integer null,
+  Level integer null,
+  Sort varchar(100) null,
+  sort_key varchar(100) null,
+  added timestamp null default CURRENT_TIMESTAMP
+);
+
+create table tlkpOrgNameType (
+  ID serial primary key,
+  Type varchar(20) not null
+);
+
+create table meta_word (
+  id serial primary key,
+  word varchar(30) not null unique
+);
+
+create table meta_column (
+  id serial primary key,
+  column_name varchar(50) null
+);
+
+create table org_notes (
+  id serial primary key,
+  org varchar(300) not null,
+  note varchar(100) not null,
+  details text null,
+  org_id integer null,
+  note_date date not null default CURRENT_DATE
+);
+
+create table meta_index (
+  id serial primary key,
+  row_id integer not null,
+  column_id integer not null,
+  word_id integer not null,
+  position integer not null,
+  unique(row_id, column_id, position)
+);
+
+create table meta_group (
+  id serial primary key,
+  "group" varchar(20) not null
+);
+
+create table meta_column_group (
+  id serial primary key,
+  column_id integer not null,
+  group_id integer not null,
+  unique(column_id, group_id)
+);
+
+create table org_names (
+  id serial primary key,
+  org_id integer not null,
+  org_name_id integer not null,
+  added timestamp null default CURRENT_TIMESTAMP,
+  unique(org_id, org_name_id)
+);
+
+create table meta_index_thes (
+  id serial primary key,
+  row_id integer not null,
+  column_id integer not null,
+  word_id integer not null,
+  position integer not null
+);
+
 
 \copy data from 'unload/172.dat' csv quote '''' encoding 'WIN1252';
 \copy thes from 'unload/179.dat' csv quote '''' encoding 'WIN1252';
