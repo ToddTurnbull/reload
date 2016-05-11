@@ -869,6 +869,34 @@ create table taxTemp (
   parentCode varchar(19) null
 );
 
+create table cioc (
+  id serial primary key,
+  pid integer not null,
+  ptype integer not null,
+  xid integer not null
+);
+
+create table ciocExport (
+  id serial primary key,
+  updated datetime null,
+  notes text not null
+);
+
+-- skipping tempNO
+
+create table taxRelTemp (
+  id serial primary key,
+  taxCode varchar(19) not null,
+  relCode varchar(19) not null,
+  relType varchar(2) not null
+);
+
+create table taxTempOldCode (
+  code varchar(19) not null,
+  oldCode varchar(19) not null
+);
+
+-- skipping taxonomy_copy
 
 \copy data from 'unload/172.dat' csv quote '''' encoding 'WIN1252';
 \copy thes from 'unload/179.dat' csv quote '''' encoding 'WIN1252';
@@ -944,4 +972,3 @@ create table taxTemp (
 \copy orgTaxLink from 'unload/357.dat' csv quote '''' encoding 'WIN1252';
 \copy taxLinkNote from 'unload/358.dat' csv quote '''' encoding 'WIN1252';
 \copy taxTemp from 'unload/360.dat' csv quote '''' encoding 'WIN1252';
-
