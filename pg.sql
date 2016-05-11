@@ -1,85 +1,9 @@
+drop schema if exists tempdb cascade;
 create schema if not exists tempdb;
 set search_path to tempdb;
 
 drop domain if exists tempdb.multiocc cascade;
 create domain tempdb.multiocc as text;
-
-drop table if exists
-  Data,
-  thes,
-  thes_cat,
-  thes_tree,
-  thes_data,
-  city,
-  pub,
-  thes_related,
-  blue_entry,
-  thes_reject,
-  thes_blue_entry,
-  thes_blue,
-  old_blue_entry,
-  thes_blue_related,
-  xref,
-  tlkpAddressType,
-  tblAddress,
-  tlkpAccessibility,
-  trelAddressAccessibility,
-  tlkpCommType,
-  tblComm,
-  tblContact,
-  tblService,
-  tlkpLanguage,
-  trelServiceLanguage,
-  tlkpArea,
-  trelServiceArea,
-  tblOrgName,
-  tlkpOrgNameType,
-  meta_word,
-  meta_column,
-  org_notes,
-  meta_index,
-  meta_group,
-  meta_column_group,
-  org_names,
-  meta_index_thes,
-  org,
-  org_mod,
-  org_meta,
-  org_comm_rel,
-  org_address_rel,
-  org_contact_rel,
-  org_rel_del,
-  org_service_rel,
-  org_del,
-  pub_org,
-  thes_original,
-  thes_rel,
-  org_thes,
-  pub_entry,
-  area,
-  taxonomy_original,
-  taxonomy,
-  taxTree,
-  taxRel,
-  org_tax,
-  locations,
-  pubGroupName,
-  pubGroup,
-  orgNotes,
-  orgNoteTypes,
-  pubThes,
-  orgMod,
-  orgModColumns,
-  taxGroups,
-  temptaxgroup,
-  taxChanges,
-  taxGroup,
-  orgUpdated,
-  taxLink,
-  orgTaxLink,
-  taxLinkNote,
-  taxTemp
-cascade;
 
 create table Data (
   RecordNumber varchar(5) not null unique,
@@ -878,7 +802,7 @@ create table cioc (
 
 create table ciocExport (
   id serial primary key,
-  updated datetime null,
+  updated timestamp null,
   notes text not null
 );
 
@@ -897,3 +821,179 @@ create table taxTempOldCode (
 );
 
 -- skipping taxonomy_copy
+
+create table funding (
+  id serial primary key,
+  name varchar(100) not null,
+  notes text null
+);
+
+create table orgFunding (
+  id serial primary key,
+  orgId integer not null,
+  fundingId integer not null
+);
+
+create table tempTaxNames (
+  code varchar(19) not null,
+  name varchar(100) not null,
+  isPreferred boolean not null,
+  release text null
+);
+
+create table tempTaxAlso (
+  code varchar(19) not null,
+  see varchar(19) not null,
+  release text null
+);
+
+create table tempTaxOld (
+  code varchar(19) not null,
+  old varchar(19) not null,
+  release text null
+);
+
+create table tempTaxDetails (
+  code varchar(19) not null,
+  definition text not null,
+  created date not null,
+  modified date not null,
+  release text null
+);
+
+create table isql (
+  id serial primary key,
+  name varchar(100) not null,
+  note text null,
+  query text not null,
+  parameters varchar(100) null,
+  linkID integer null,
+  created timestamp not null default CURRENT_TIMESTAMP
+);
+
+create table org_location (
+  id serial primary key,
+  org_id integer not null,
+  name varchar(100) not null
+);
+
+create table org_locations (
+  id serial primary key,
+  location_id integer not null,
+  address_id integer not null
+);
+
+create table pubTax (
+  id serial primary key,
+  pubId integer not null,
+  taxId integer not null,
+  added timestamp not null default CURRENT_TIMESTAMP
+);
+
+create table ic_agencies (
+  id serial primary key,
+  orgid integer not null unique,
+  CND varchar(8) null,
+  name_1 varchar(100) null,
+  name_level_1 integer null,
+  name_2 varchar(100) null,
+  name_level_2 integer null
+);
+
+create table ic_agency_sites (
+  id serial primary key,
+  agencyid integer not null,
+  siteid integer not null,
+  CND varchar(8) null,
+  site_name varchar(200) null,
+  site_name_level integer null,
+  site_name_other varchar(3) null
+);
+
+create table ic_site_services (
+  id serial primary key,
+  siteid integer not null,
+  serviceid integer not null,
+  service_name_1 varchar(200) null,
+  service_name_2 varchar(200) null
+);
+
+create table pub_tree (
+  id integer not null,
+  parent integer not null,
+  pub integer not null,
+  note text null,
+  depth integer not null,
+  primary key (id, parent)
+);
+
+create table site (
+  id serial primary key,
+  org_address_id integer not null unique,
+  context_id integer not null default 1,
+  code varchar(20) null
+);
+
+create table org_tree (
+  id serial primary key,
+  org_id integer not null,
+  super_id integer not null
+);
+
+create table org_site (
+  id serial primary key,
+  org_id integer not null,
+  site_id integer not null,
+  name varchar(100) null,
+  note text null,
+  label varchar(100) null,
+  type integer not null default 3
+);
+
+create table org_site_name (
+  id serial primary key,
+  org_site_id integer not null,
+  org_names_id integer not null
+);
+
+create table org_thes_pub (
+  id serial primary key,
+  org_thes_id integer not null,
+  pub_id integer not null,
+  is_active boolean not null default true
+);
+
+create table tempTaxActive (
+  code varchar(25) not null
+);
+
+create table tempCCAC (
+  ext varchar(10) not null,
+  id varchar(10) not null,
+  name varchar(200) not null
+);
+
+create table contact_comm (
+  id serial primary key,
+  contact_id integer not null,
+  comm_id integer not null,
+  type integer null,
+  note varchar(50) null,
+  added timestamp not null default CURRENT_TIMESTAMP
+);
+
+create table external (
+  id serial primary key,
+  name varchar(50) not null,
+  field varchar(50) not null,
+  cic varchar(50) not null,
+  note text not null
+);
+
+create table external_data (
+  id serial primary key,
+  external_type integer not null,
+  cic_id integer not null,
+  data text not null,
+  external_id varchar(50) not null
+);
