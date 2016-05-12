@@ -1,3 +1,10 @@
+drop schema if exists tempdb cascade;
+create schema if not exists tempdb;
+set search_path to tempdb;
+
+drop domain if exists tempdb.multiocc cascade;
+create domain tempdb.multiocc as text;
+
 create table Data (
   RecordNumber varchar(5) not null unique,
   InternalMemo multiocc null,
@@ -495,7 +502,7 @@ create table pub_org (
 
 create table thes_original (
   id serial primary key,
-  de varchar(100) not null,
+  de varchar(100) not null unique,
   use varchar(100) null,
   woo varchar(1) null,
   eq varchar(100) null,
@@ -559,7 +566,8 @@ create table area (
   id serial primary key,
   name varchar(255) not null,
   locatedIn integer null,
-  alt varchar(255) null
+  alt varchar(255) null,
+  unique(name, locatedin)
 );
 
 -- skipping org_parent_child
@@ -574,7 +582,7 @@ create table taxonomy_original (
 create table taxonomy (
   id serial primary key,
   name varchar(100) not null,
-  code varchar(19) null,
+  code varchar(19) null unique,
   isPreferred boolean not null,
   definition text null,
   created date null,
@@ -591,14 +599,16 @@ create table taxTree (
   level3 integer null,
   level4 integer null,
   level5 integer null,
-  parentID integer null
+  parentID integer null,
+  unique(level1, level2, level3, level4, level5)
 );
 
 create table taxRel (
   id serial primary key,
   taxID integer not null,
   relID integer not null,
-  relType varchar(2) not null
+  relType varchar(2) not null,
+  unique(taxid, relid)
 );
 
 create table org_tax (
@@ -690,7 +700,8 @@ create table pubThes (
   id serial primary key,
   pubId integer not null,
   thesId integer not null,
-  isactive boolean not null default true
+  isactive boolean not null default true,
+  unique(pubid, thesid)
 );
 
 -- skipping tempUTM
@@ -718,7 +729,8 @@ create table taxGroups (
   hasChildren boolean not null,
   added timestamp null default CURRENT_TIMESTAMP,
   isLocal boolean not null default false,
-  modified timestamp null
+  modified timestamp null,
+  unique(taxgroup, taxid)
 );
 
 create table temptaxgroup (
@@ -790,7 +802,8 @@ create table cioc (
   id serial primary key,
   pid integer not null,
   ptype integer not null,
-  xid integer not null
+  xid integer not null,
+  unique(xid, ptype, pid)
 );
 
 create table ciocExport (
@@ -880,7 +893,8 @@ create table pubTax (
   id serial primary key,
   pubId integer not null,
   taxId integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP
+  added timestamp not null default CURRENT_TIMESTAMP,
+  unique(pubid, taxid)
 );
 
 create table ic_agencies (
@@ -900,7 +914,8 @@ create table ic_agency_sites (
   CND varchar(8) null,
   site_name varchar(200) null,
   site_name_level integer null,
-  site_name_other varchar(3) null
+  site_name_other varchar(3) null,
+  unique(agencyid, siteid)
 );
 
 create table ic_site_services (
@@ -908,7 +923,8 @@ create table ic_site_services (
   siteid integer not null,
   serviceid integer not null,
   service_name_1 varchar(200) null,
-  service_name_2 varchar(200) null
+  service_name_2 varchar(200) null,
+  unique(siteid, serviceid)
 );
 
 create table pub_tree (
@@ -940,7 +956,8 @@ create table org_site (
   name varchar(100) null,
   note text null,
   label varchar(100) null,
-  type integer not null default 3
+  type integer not null default 3,
+  unique(org_id, site_id, label)
 );
 
 create table org_site_name (
@@ -953,11 +970,12 @@ create table org_thes_pub (
   id serial primary key,
   org_thes_id integer not null,
   pub_id integer not null,
-  is_active boolean not null default true
+  is_active boolean not null default true,
+  unique(org_thes_id, pub_id)
 );
 
 create table tempTaxActive (
-  code varchar(25) not null
+  code varchar(25) not null unique
 );
 
 create table tempCCAC (
