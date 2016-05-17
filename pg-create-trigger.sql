@@ -1,10 +1,11 @@
 set search_path to tempdb;
 
+-- call org_modified() when related tables change: tblcomm, org_comm_rel, etc
 drop type if exists org_modified cascade;
 create type org_modified as (org_id integer, modified timestamp);
 
 -- dropping org_modified type cascades to org_modified() function
--- drop function if exists org_modified(org_id integer);
+drop function if exists org_modified(org_id integer);
 create function org_modified(org_id integer)
   returns org_modified
   as $$
@@ -13,19 +14,6 @@ create function org_modified(org_id integer)
     where id = $1
     returning id, modified;
   $$ language sql;
-
-create function comm_modified(comm_id integer)
-  returns org_modified
-  as $$
-    select org_modified(o.org_id)
-    from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
-    where c.id = $1;
-  $$ language sql;
-
-create trigger comm_trigger
-  after update on tblcomm
-  for each row
-  execute procedure comm_modified();
 
 -- skipping WebChangeTemplate
 -- skipping WebAddTemplate
@@ -104,6 +92,33 @@ create trigger comm_trigger
 -- orgModContactIns (org_contact_rel)
 
 -- orgModServiceUp (tblservice)
+drop function if exists service_modified() cascade;
+create function service_modified()
+  returns trigger
+  as $$
+    service_id = TD["new"]["id"]
+    mods = [(
+      "update tblservice "
+      "set updated = now() "
+      "where id = $1"
+    ),
+    (
+      "select org_modified(o.org_id) "
+      "from org_service_rel as o join tblservice as s on o.service_id = s.id "
+      "where s.id = $1"
+    )]
+    for mod in mods:
+      plan = plpy.prepare(mod, ["int"])
+      results = plpy.execute(plan, [service_id])
+  $$ language plpythonu;
+
+drop trigger if exists service_trigger on tblservice;
+create trigger service_trigger
+  -- excluding tblservice.updated, which gets modified by trigger
+  after update of description, eligibility, info, fees, hours, dates, application
+  on tblservice
+  for each row
+  execute procedure service_modified();
 
 -- skipping meta_insert_address
 
@@ -125,10 +140,67 @@ create trigger comm_trigger
 -- orgModPubContact (pub_org)
 
 -- updateAddressOrgMod (tbladdress)
+drop function if exists address_modified() cascade;
+create function address_modified()
+  returns trigger
+  as $$
+    address_id = TD["new"]["id"]
+    modify = (
+      "select org_modified(o.org_id) "
+      "from org_address_rel as o join tbladdress as a on o.address_id = a.id "
+      "where a.id = $1"
+    )
+    plan = plpy.prepare(modify, ["int"])
+    results = plpy.execute(plan, [address_id])
+  $$ language plpythonu;
+
+drop trigger if exists address_trigger on tbladdress;
+create trigger address_trigger
+  after update on tbladdress
+  for each row
+  execute procedure address_modified();
 
 -- updateCommOrgMod (tblcomm)
+drop function if exists comm_modified() cascade;
+create function comm_modified()
+  returns trigger
+  as $$
+    comm_id = TD["new"]["id"]
+    modify = (
+      "select org_modified(o.org_id) "
+      "from org_comm_rel as o join tblcomm as c on o.comm_id = c.id "
+      "where c.id = $1"
+    )
+    plan = plpy.prepare(modify, ["int"])
+    results = plpy.execute(plan, [comm_id])
+  $$ language plpythonu;
+
+drop trigger if exists comm_trigger on tblcomm;
+create trigger comm_trigger
+  after update on tblcomm
+  for each row
+  execute procedure comm_modified();
 
 -- updateContactOrgMod (tblcontact)
+drop function if exists contact_modified() cascade;
+create function contact_modified()
+  returns trigger
+  as $$
+    contact_id = TD["new"]["id"]
+    modify = (
+      "select org_modified(o.org_id) "
+      "from org_contact_rel as o join tblcontact as c on o.contact_id = c.id "
+      "where c.id = $1"
+    )
+    plan = plpy.prepare(modify, ["int"])
+    results = plpy.execute(plan, [contact_id])
+  $$ language plpythonu;
+
+drop trigger if exists contact_trigger on tblcontact;
+create trigger contact_trigger
+  after update on tblcontact
+  for each row
+  execute procedure contact_modified();
 
 -- deleteIncomplete (org.iscomplete)
 
@@ -160,4 +232,3 @@ create trigger comm_trigger
 
 -- skipping org_meta_insert_site
 -- skipping org_meta_delete_site
-
