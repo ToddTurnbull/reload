@@ -1,10 +1,31 @@
 set search_path to tempdb;
 
+drop type if exists org_modified cascade;
+create type org_modified as (org_id integer, modified timestamp);
+
+-- dropping org_modified type cascades to org_modified() function
+-- drop function if exists org_modified(org_id integer);
 create function org_modified(org_id integer)
-  returns void
+  returns org_modified
   as $$
-    update org set modified = now() where id = $1;
-  $$ language sql
+    update org
+    set modified = now()
+    where id = $1
+    returning id, modified;
+  $$ language sql;
+
+create function comm_modified(comm_id integer)
+  returns org_modified
+  as $$
+    select org_modified(o.org_id)
+    from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
+    where c.id = $1;
+  $$ language sql;
+
+create trigger comm_trigger
+  after update on tblcomm
+  for each row
+  execute procedure comm_modified();
 
 -- skipping WebChangeTemplate
 -- skipping WebAddTemplate
@@ -139,3 +160,4 @@ create function org_modified(org_id integer)
 
 -- skipping org_meta_insert_site
 -- skipping org_meta_delete_site
+
