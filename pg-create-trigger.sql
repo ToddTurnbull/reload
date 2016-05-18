@@ -28,6 +28,24 @@ create function org_modified(org_id integer)
 -- skipping meta_update_service
 
 -- activeDate (org.isactive)
+drop function if exists active_date() cascade;
+create function active_date()
+  returns trigger
+  as $$
+    begin
+      update org
+      set deleted = (case isactive when true then null else now() end)
+      where org.id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists is_active on org;
+create trigger is_active
+  after update of isactive
+  on org
+  for each row
+  execute procedure active_date();
 
 -- skipping meta_delete_service
 -- skipping meta_update_cicid
