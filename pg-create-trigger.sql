@@ -145,6 +145,22 @@ create trigger org_deleted
   execute procedure org_deleted();
 
 -- org_name_del (org_names)
+drop function if exists org_name_deleted() cascade;
+create function org_name_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id, rel_id, added, deleted, table_id)
+      values(OLD.org_id, OLD.org_name_id, now(), now(), 249);
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_name_deleted on org_names;
+create trigger org_deleted
+  after delete
+  on org_names
+  for each row
+  execute procedure org_name_deleted();
 
 -- update_org_name (org.org_name_id)
 
