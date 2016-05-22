@@ -34,6 +34,7 @@
 \copy org_thes from 'unload/245.dat' csv quote '''' encoding 'WIN1252';
 \copy pub_entry from 'unload/247.dat' csv quote '''' encoding 'WIN1252';
 \copy area from 'unload/248.dat' csv quote '''' encoding 'WIN1252';
+\copy taxonomy from 'unload/252.dat' csv quote '''' encoding 'WIN1252';
 \copy taxRel from 'unload/254.dat' csv quote '''' encoding 'WIN1252';
 \copy locations from 'unload/272.dat' csv quote '''' encoding 'WIN1252';
 \copy pubGroupName from 'unload/294.dat' csv quote '''' encoding 'WIN1252';
@@ -41,7 +42,6 @@
 \copy orgNotes from 'unload/297.dat' csv quote '''' encoding 'WIN1252';
 \copy orgNoteTypes from 'unload/298.dat' csv quote '''' encoding 'WIN1252';
 \copy pubThes from 'unload/299.dat' csv quote '''' encoding 'WIN1252';
-\copy orgModColumns from 'unload/339.dat' csv quote '''' encoding 'WIN1252';
 \copy taxGroups from 'unload/341.dat' csv quote '''' encoding 'WIN1252';
 \copy temptaxgroup from 'unload/342.dat' csv quote '''' encoding 'WIN1252';
 \copy taxChanges from 'unload/343.dat' csv quote '''' encoding 'WIN1252';
@@ -54,12 +54,10 @@
 \copy ciocExport from 'unload/362.dat' csv quote '''' encoding 'WIN1252';
 \copy taxRelTemp from 'unload/364.dat' csv quote '''' encoding 'WIN1252';
 \copy taxTempOldCode from 'unload/365.dat' csv quote '''' encoding 'WIN1252';
-\copy funding from 'unload/371.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxNames from 'unload/374.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxAlso from 'unload/375.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxOld from 'unload/376.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxDetails from 'unload/377.dat' csv quote '''' encoding 'WIN1252';
-\copy isql from 'unload/378.dat' csv quote '''' encoding 'WIN1252';
 \copy pubTax from 'unload/381.dat' csv quote '''' encoding 'WIN1252';
 \copy ic_agencies from 'unload/382.dat' csv quote '''' encoding 'WIN1252';
 \copy ic_agency_sites from 'unload/383.dat' csv quote '''' encoding 'WIN1252';
