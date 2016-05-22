@@ -125,13 +125,7 @@ create table thes_tree (
   cat_id integer not null
 );
 
-create table thes_data (
-  id serial primary key,
-  thes_id integer not null,
-  data_id integer not null,
-  unique (thes_id, data_id)
-);
-
+-- skipping thes_data
 -- skipping StaffBook
 -- skipping staff_calendar
 -- skipping staff_group
@@ -157,47 +151,18 @@ create table thes_related (
   primary key (thes_id, related_id)
 );
 
-create table blue_entry (
-  entry integer not null unique,
-  data_id integer primary key
-);
+-- skipping blue_entry
 
 create table thes_reject (
   thes_id integer not null,
   accept_id integer not null
 );
 
-create table thes_blue_entry (
-  thes_id integer not null,
-  entry integer not null,
-  primary key (thes_id, entry)
-);
-
-create table thes_blue (
-  thes_id integer primary key
-);
-
-create table old_blue_entry (
-  entry integer primary key,
-  data_id integer not null
-);
-
-create table thes_blue_related (
-  thes_blue_id integer not null,
-  related_id integer not null,
-  type varchar(1) not null,
-  primary key (thes_blue_id, related_id)
-);
-
-create table xref (
-  data_id integer not null,
-  xref varchar(100) not null,
-  sort varchar(100) null,
-  id serial not null unique,
-  entry integer null,
-  primary key (data_id, xref)
-);
-
+-- skipping thes_blue_entry
+-- skipping thes_blue
+-- skipping old_blue_entry
+-- skipping thes_blue_related
+-- skipping xref
 -- skipping defunct
 
 create table tlkpAddressType (
@@ -338,45 +303,12 @@ create table tlkpOrgNameType (
   Type varchar(20) not null
 );
 
-create table meta_word (
-  id serial primary key,
-  word varchar(30) not null unique
-);
-
-create table meta_column (
-  id serial primary key,
-  column_name varchar(50) null
-);
-
-create table org_notes (
-  id serial primary key,
-  org varchar(300) not null,
-  note varchar(100) not null,
-  details text null,
-  org_id integer null,
-  note_date date not null default CURRENT_DATE
-);
-
-create table meta_index (
-  id serial primary key,
-  row_id integer not null,
-  column_id integer not null,
-  word_id integer not null,
-  position integer not null,
-  unique(row_id, column_id, position)
-);
-
-create table meta_group (
-  id serial primary key,
-  "group" varchar(20) not null
-);
-
-create table meta_column_group (
-  id serial primary key,
-  column_id integer not null,
-  group_id integer not null,
-  unique(column_id, group_id)
-);
+-- skipping meta_word
+-- skipping meta_column
+-- skipping org_notes
+-- skipping meta_index
+-- skipping meta_group
+-- skipping meta_column_group
 
 create table org_names (
   id serial primary key,
@@ -386,14 +318,7 @@ create table org_names (
   unique(org_id, org_name_id)
 );
 
-create table meta_index_thes (
-  id serial primary key,
-  row_id integer not null,
-  column_id integer not null,
-  word_id integer not null,
-  position integer not null
-);
-
+-- skipping meta_index_thes
 create table org (
   id serial primary key,
   org_name_id integer not null,
@@ -410,22 +335,8 @@ create table org (
   deleted timestamp null
 );
 
--- skipping mod_date **datetime** not null default current timestamp
-create table org_mod (
-  id serial primary key,
-  org_id integer not null,
-  mod text not null,
-  mod_date timestamp not null default CURRENT_TIMESTAMP
-);
-
-create table org_meta (
-  org_id integer not null,
-  word_id integer not null,
-  column_id integer not null,
-  row_id integer not null,
-  position integer null
-);
-
+-- skipping org_mod
+-- skipping org_meta
 -- skipping settle_thes
 -- skipping settle_org
 
@@ -565,12 +476,7 @@ create table area (
 
 -- skipping org_parent_child
 -- skipping parent_child_hours
-
-create table taxonomy_original (
-  recordType varchar(2) not null,
-  termCode varchar(13) not null,
-  value text not null
-);
+-- skipping taxonomy_original
 
 create table taxonomy (
   id serial primary key,
@@ -584,17 +490,8 @@ create table taxonomy (
   cicModified timestamp null
 );
 
-create table taxTree (
-  id serial primary key,
-  taxID integer not null,
-  level1 varchar(1) not null,
-  level2 varchar(1) null,
-  level3 integer null,
-  level4 integer null,
-  level5 integer null,
-  parentID integer null,
-  unique(level1, level2, level3, level4, level5)
-);
+-- skipping taxonomy_original
+-- skipping taxtree
 
 create table taxRel (
   id serial primary key,
@@ -604,13 +501,7 @@ create table taxRel (
   unique(taxid, relid)
 );
 
-create table org_tax (
-  id serial primary key,
-  orgID integer not null,
-  taxID integer not null,
-  unique(orgID, taxID)
-);
-
+-- skipping org_tax
 -- skipping tempSuffix
 -- skipping addressSuffix
 -- skipping addressUnit
@@ -698,20 +589,8 @@ create table pubThes (
 );
 
 -- skipping tempUTM
-
-create table orgMod (
-  id serial primary key,
-  columnId integer not null,
-  oldValue text null,
-  newValue text null,
-  modified timestamp not null
-);
-
-create table orgModColumns (
-  id serial primary key,
-  columnName varchar(50) not null
-);
-
+-- skipping orgmod
+-- skipping orgmodcolumns
 -- skipping og
 
 create table taxGroups (
@@ -741,12 +620,7 @@ create table taxChanges (
 );
 
 -- skipping tempContactComm
-
-create table taxGroup (
-  id serial primary key,
-  name varchar(50) not null,
-  notes text null
-);
+-- skipping taxgroup
 
 create table orgUpdated (
   id serial primary key,
@@ -820,18 +694,7 @@ create table taxTempOldCode (
 );
 
 -- skipping taxonomy_copy
-
-create table funding (
-  id serial primary key,
-  name varchar(100) not null,
-  notes text null
-);
-
-create table orgFunding (
-  id serial primary key,
-  orgId integer not null,
-  fundingId integer not null
-);
+-- skipping funding
 
 create table tempTaxNames (
   code varchar(19) not null,
@@ -860,27 +723,9 @@ create table tempTaxDetails (
   release text null
 );
 
-create table isql (
-  id serial primary key,
-  name varchar(100) not null,
-  note text null,
-  query text not null,
-  parameters varchar(100) null,
-  linkID integer null,
-  created timestamp not null default CURRENT_TIMESTAMP
-);
-
-create table org_location (
-  id serial primary key,
-  org_id integer not null,
-  name varchar(100) not null
-);
-
-create table org_locations (
-  id serial primary key,
-  location_id integer not null,
-  address_id integer not null
-);
+-- skipping isql
+-- skipping org_location
+-- skipping org_locations
 
 create table pubTax (
   id serial primary key,

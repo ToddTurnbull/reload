@@ -11,4 +11,6 @@ create domain tempdb.multiocc as text;
 
 \i pg-alter-table.sql
 
--- \i pg-create-index.sql
+\i pg-create-index.sql
+
+\i pg-create-trigger.sql
