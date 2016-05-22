@@ -9,7 +9,7 @@ create function name_level_compute()
       update tblorgname
       set level = ((length(sort_key)-1)/5)
       where id = NEW.id;
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -82,7 +82,7 @@ create function address_deleted()
     begin
       insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
       values(OLD.org_id, OLD.address_id, OLD.added, OLD.note, now(), 271);
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -101,7 +101,7 @@ create function comm_deleted()
     begin
       insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
       values(OLD.org_id, OLD.comm_id, OLD.added, OLD.note, now(), 270);
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -120,7 +120,7 @@ create function contact_deleted()
     begin
       insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
       values(OLD.org_id, OLD.contact_id, OLD.added, OLD.note, now(), 272);
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -139,7 +139,7 @@ create function service_deleted()
     begin
       insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
       values(OLD.org_id, OLD.service_id, OLD.added, OLD.note, now(), 275);
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -158,7 +158,7 @@ create function org_name_deleted()
     begin
       insert into org_rel_del(org_id, rel_id, added, deleted, table_id)
       values(OLD.org_id, OLD.org_name_id, now(), now(), 249);
-      return;
+      return null;
     end;
   $$ language plpgsql;
 
@@ -177,7 +177,7 @@ create trigger org_name_deleted
       begin
         insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
         values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
-        return;
+        return null;
       end;
     $$ language plpgsql;
 
@@ -203,7 +203,7 @@ create function org_name_updated()
         "and org_name_id = any(select id from tblorgname where orgnametypeid = 1)"
       )
       plan = plpy.prepare(delete_names, ["int"])
-      plpy.execute(plan, [org_id])
+      results = plpy.execute(plan, [org_id])
 
       select_level = (
         "select level from tblorgname "
@@ -243,10 +243,110 @@ create trigger org_name_updated
   execute procedure org_name_updated();
 
 -- update_name_parent (tblorgname.ParentID)
+drop function if exists name_parent_updated() cascade;
+create function name_parent_updated()
+  returns trigger
+  as $$
+    name_id = TD["old"]["id"]
+    old_level = TD["old"]["level"]
+    old_parent = TD["old"]["parentid"]
+    new_parent = TD["new"]["parentid"]
+
+    with plpy.subtransaction():
+      if old_parent:
+        delete_names = (
+          "delete from org_names "
+          "where org_id = any(select org_id from org_names where org_name_id = $1) "
+          "and org_name_id = any(select id from tblorgname where level between 1 and ($2-1) and orgnametypeid = 1)"
+        )
+        plan = plpy.prepare(delete_names, ["int", "int"])
+        results = plpy.execute(plan, [name_id, old_level])
+
+      if new_parent:
+        select_level = (
+          "select level from tblorgname "
+          "where id = $1"
+        )
+        plan = plpy.prepare(select_level, ["int"])
+        results = plpy.execute(plan, [new_parent])
+        result = results[0]
+        levels = range(result["level"])
+
+        current_id = new_parent
+        for level in levels:
+          insert_name = (
+            "insert into org_names(org_id, org_name_id) "
+            "select distinct org_id, $1 "
+            "from org_names "
+            "where org_id = any(select org_id from org_names where org_name_id = $2)"
+          )
+          plan = plpy.prepare(insert_name, ["int", "int"])
+          results = plpy.execute(plan, [current_id, name_id])
+
+          select_parent = (
+            "select parentid "
+            "from tblorgname "
+            "where id = $1"
+          )
+          plan = plpy.prepare(select_parent, ["int"])
+          results = plpy.execute(plan, [current_id])
+          result = results[0]
+          current_id = result["parentid"]
+  $$ language plpythonu;
+
+drop trigger if exists name_parent_updated on tblorgname;
+create trigger name_parent_updated
+  after update of parentid
+  on tblorgname
+  for each row
+  execute procedure name_parent_updated();
 
 -- skipping deleteDeletedPubs
 
 -- org_insert (org)
+drop function if exists org_inserted() cascade;
+create function org_inserted()
+  returns trigger
+  as $$
+    org_id = TD["new"]["id"]
+    name_id = TD["new"]["org_name_id"]
+
+    with plpy.subtransaction():
+      select_level = (
+        "select level from tblorgname "
+        "where id = $1"
+      )
+      plan = plpy.prepare(select_level, ["int"])
+      results = plpy.execute(plan, [name_id])
+      result = results[0]
+      levels = range(result["level"])
+
+      current_id = name_id
+      for level in levels:
+        insert_name = (
+          "insert into org_names(org_id, org_name_id) "
+          "values($1, $2)"
+        )
+        plan = plpy.prepare(insert_name, ["int", "int"])
+        results = plpy.execute(plan, [org_id, current_id])
+
+        select_parent = (
+          "select parentid "
+          "from tblorgname "
+          "where id = $1"
+        )
+        plan = plpy.prepare(select_parent, ["int"])
+        results = plpy.execute(plan, [current_id])
+        result = results[0]
+        current_id = result["parentid"]
+  $$ language plpythonu;
+
+drop trigger if exists org_inserted on org;
+create trigger org_inserted
+  after insert
+  on org
+  for each row
+  execute procedure org_inserted();
 
 -- skipping pub_org_del
 -- skipping MetaIndex
