@@ -30,16 +30,6 @@ create index tblorgname_sort_key_index on tblOrgName (
   sort_key
 );
 
-create index meta_index_column_id_row_id_index on meta_index (
-  column_id,
-  row_id
-);
-
-create index meta_index_word_id_id_index on meta_index (
-  word_id,
-  id
-);
-
 create index org_names_org_name_id_index on org_names (
   org_name_id
 );
@@ -51,24 +41,6 @@ create index org_names_org_id_index on org_names (
 create index org_names_org_name_id_org_id_index on org_names (
   org_name_id,
   org_id
-);
-
-create index meta_index_thes_word_id_row_id_index on meta_index_thes (
-  word_id,
-  row_id
-);
-
-create index meta_index_thes_row_id_word_id_index on meta_index_thes (
-  row_id,
-  word_id
-);
-
-create index meta_index_thes_word_id_index on meta_index_thes (
-  word_id
-);
-
-create index meta_index_thes_row_id_index on meta_index_thes (
-  row_id
 );
 
 create index org_created_index on org (
@@ -83,18 +55,6 @@ create index org_iscomplete_index on org (
   iscomplete
 );
 
-create index org_meta_word_id_column_id_org_id_index on org_meta (
-  word_id,
-  column_id,
-  org_id
-);
-
-create index org_meta_word_id_org_id_column_id_index on org_meta (
-  word_id,
-  org_id,
-  column_id
-);
-
 -- skipping res_loc
 -- skipping res
 -- skipping temp_name_2
@@ -106,10 +66,6 @@ create index thes_rel_rel_type_index on thes_rel (
 create index pub_entry_pub_year_entry_index on pub_entry (
   pub_year,
   entry
-);
-
-create index taxonomy_original_termcode_index on taxonomy_original (
-  termCode
 );
 
 create index taxonomy_name_index on taxonomy (
