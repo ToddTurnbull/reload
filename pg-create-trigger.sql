@@ -358,10 +358,50 @@ create trigger org_inserted
 -- create_org_name_sort_key (tblorgname)
 
 -- insert_uf (org_thes)
+  drop function if exists org_thes_inserted() cascade;
+  create function org_thes_inserted()
+    returns trigger
+    as $$
+      begin
+        insert into org_thes(org_id, thes_id, official_id)
+        select NEW.org_id, rel_id, NEW.thes_id
+        from thes_rel
+        where rel_type = 'uf'
+        and thes_id = NEW.thes_id;
+        return null;
+      end;
+    $$ language plpgsql;
+
+  drop trigger if exists org_thes_inserted on org_thes;
+  create trigger org_thes_inserted
+    after insert
+    on org_thes
+    for each row
+    when(NEW.thes_id = NEW.official_id)
+    execute procedure org_thes_inserted();
 
 -- orgModNameDel (org_names)
 
 -- delete_uf (org_thes)
+  drop function if exists org_thes_deleted() cascade;
+  create function org_thes_deleted()
+    returns trigger
+    as $$
+      begin
+        delete from org_thes
+        where official_id = OLD.official_id
+        and org_id = OLD.org_id;
+        return null;
+      end;
+    $$ language plpgsql;
+
+  drop trigger if exists org_thes_deleted on org_thes;
+  create trigger org_thes_deleted
+    after insert
+    on org_thes
+    for each row
+    when(OLD.thes_id = OLD.official_id)
+    execute procedure org_thes_deleted();
 
 -- skipping meta_insert_thes_o
 -- skipping meta_insert_thes_o
