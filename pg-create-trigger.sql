@@ -443,6 +443,22 @@ create trigger org_thes_inserted
   execute procedure org_thes_inserted();
 
 -- orgModNameDel (org_names)
+drop function if exists org_names_deleted() cascade;
+create function org_names_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.org_id);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_names_deleted on org_names;
+create trigger org_names_deleted
+  after delete
+  on org_names
+  for each row
+  execute procedure org_names_deleted();
 
 -- delete_uf (org_thes)
 drop function if exists org_thes_deleted() cascade;
@@ -675,7 +691,7 @@ create function org_updated()
   as $$
     begin
       insert into orgUpdated(orgid, updated)
-      values(NEW.id, NEW.updated)
+      values(NEW.id, NEW.updated);
       return null;
     end;
   $$ language plpgsql;
@@ -846,7 +862,7 @@ create trigger org_is_complete_updated
   after update of iscomplete
   on org
   for each row
-  when (OLD.iscomplete = 1 and NEW.iscomplete = 0)
+  when (OLD.iscomplete = true and NEW.iscomplete = false)
   execute procedure org_is_complete_updated();
 
 -- pubOrgInsert (pub_org)
@@ -883,7 +899,7 @@ create function ic_services_updated()
       set modified = now()
       where id = any(
         select ic_agency_sites.siteid
-        from ic_agency_sites join ic_site_services on ic_agency_sites.id join ic_site_services.siteid
+        from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
         where serviceid in(OLD.serviceid, NEW.serviceid)
       );
       return null;
