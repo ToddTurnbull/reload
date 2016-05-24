@@ -821,7 +821,7 @@ create function ic_services_updated()
       set modified = now()
       where id = any(
         select ic_agency_sites.siteid
-        from ic_agency_sites key join ic_site_services
+        from ic_agency_sites join ic_site_services on ic_agency_sites.id join ic_site_services.siteid
         where serviceid in(OLD.serviceid, NEW.serviceid)
       );
       return null;
@@ -869,7 +869,7 @@ create function ic_sites_updated()
       set modified = now()
       where id = any(
         select orgid
-        from ic_agencies key join ic_agency_sites
+        from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
         where siteid in (OLD.siteid, NEW.siteid)
       );
       update org
@@ -901,7 +901,7 @@ create function ic_services_inserted()
         set modified = now()
         where id = any(
           select ic_agency_sites.siteid
-          from ic_agency_sites key join ic_site_services
+          from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
           where serviceid in (NEW.serviceid)
         );
       return null;
@@ -926,7 +926,7 @@ create function ic_services_deleted()
         set modified = now()
         where id = any(
           select ic_agency_sites.siteid
-          from ic_agency_sites key join ic_site_services
+          from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
           where serviceid in (OLD.serviceid));
       return null;
     end;
@@ -950,7 +950,7 @@ create function ic_sites_inserted()
         set modified = now()
         where id = any(
           select orgid
-          from ic_agencies key join ic_agency_sites
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where siteid in (NEW.siteid)
         );
       update org 
@@ -982,7 +982,7 @@ create function ic_sites_deleted()
         set modified = now()
         where id = any(
           select orgid
-          from ic_agencies key join ic_agency_sites
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where siteid in (OLD.siteid)
         );
       update org
@@ -1014,13 +1014,13 @@ create function ic_agency_inserted()
         set modified = now()
         where id = any(
           select siteid
-          from ic_agencies key join ic_agency_sites
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where orgid in (NEW.orgid));
       update org
         set modified = now()
         where id = any(
           select serviceid
-          from ic_agencies key join ic_agency_sites key join ic_site_services
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where orgid in (NEW.orgid)
         );
       return null;
@@ -1045,14 +1045,14 @@ create function ic_agency_deleted()
         set modified = now()
         where id = any(
           select siteid
-          from ic_agencies key join ic_agency_sites
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where orgid in (OLD.orgid)
         );
       update org
         set modified = now()
         where id = any(
           select serviceid
-          from ic_agencies key join ic_agency_sites key join ic_site_services
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where orgid in (OLD.orgid)
         );
       return null;
@@ -1077,14 +1077,14 @@ create function ic_agency_updated()
       update org
        set modified = now()
        where id = any(
-        select siteid from ic_agencies key join ic_agency_sites
+        select siteid from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
         where orgid in (OLD.orgid, NEW.orgid)
       );
       update org
         set modified = now() 
         where id = any(
           select serviceid
-          from ic_agencies key join ic_agency_sites key join ic_site_services
+          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where orgid in (OLD.orgid, NEW.orgid)
         );
       return null;
