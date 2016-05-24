@@ -433,6 +433,24 @@ create trigger org_contact_deleted
   execute procedure org_contact_deleted();
 
 -- orgModCommIns (org_comm_rel)
+drop function if exists org_comm_inserted() cascade;
+create function org_comm_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_comm_rel
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_comm_inserted on org_comm_rel;
+create trigger org_comm_inserted
+  after insert
+  on org_comm_rel
+  for each row
+  execute procedure org_comm_inserted();
 
 -- orgModCommDel (org_comm_rel)
 drop function if exists org_comm_deleted() cascade;
@@ -475,12 +493,48 @@ create trigger org_address_deleted
   execute procedure org_address_deleted();
 
 -- orgModAddressIns (org_address_rel)
+drop function if exists org_address_inserted() cascade;
+create function org_address_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_address_rel
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_address_inserted on org_address_rel;
+create trigger org_address_inserted
+  after delete
+  on org_address_rel
+  for each row
+  execute procedure org_address_inserted();
 
 -- orgModContactIns (org_contact_rel)
+drop function if exists org_contact_inserted() cascade;
+create function org_contact_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_contact_rel
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_contact_inserted on org_contact_rel;
+create trigger org_contact_inserted
+  after insert
+  on org_contact_rel
+  for each row
+  execute procedure org_contact_inserted();
 
 -- orgModServiceUp (tblservice)
-drop function if exists service_modified() cascade;
-create function service_modified()
+drop function if exists service_updated() cascade;
+create function service_updated()
   returns trigger
   as $$
     service_id = TD["new"]["id"]
@@ -499,24 +553,77 @@ create function service_modified()
       results = plpy.execute(plan, [service_id])
   $$ language plpythonu;
 
-drop trigger if exists service_trigger on tblservice;
-create trigger service_trigger
+drop trigger if exists service_updated on tblservice;
+create trigger service_updated
   -- excluding tblservice.updated, which gets modified by trigger
   after update of description, eligibility, info, fees, hours, dates, application
   on tblservice
   for each row
-  execute procedure service_modified();
+  execute procedure service_updated();
 
 -- skipping meta_insert_address
 
 -- orgModNameIns (org_names)
+drop function if exists org_name_inserted() cascade;
+create function org_name_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_names
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_name_inserted on org_names;
+create trigger org_name_inserted
+  after insert
+  on org_names
+  for each row
+  execute procedure org_name_inserted();
 
 -- skipping org_meta_insert_address
 -- skipping org_meta_delete_address
 
 -- orgModThesInsert (org_thes)
+drop function if exists org_thes_inserted() cascade;
+create function org_thes_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_thes
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_thes_inserted on org_names;
+create trigger org_thes_inserted
+  after insert
+  on org_thes
+  for each row
+  execute procedure org_thes_inserted();
 
 -- orgUpdated (org)
+drop function if exists org_updated() cascade;
+create function org_updated()
+  returns trigger
+  as $$
+    begin
+      insert into orgUpdated(orgid, updated)
+      values(NEW.id, NEW.updated)
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_updated on org;
+create trigger org_updated
+  after update of updated
+  on org
+  for each row
+  execute procedure org_updated();
 
 -- orgModThesDelete (org_thes)
 drop function if exists org_thes_deleted() cascade;
@@ -539,6 +646,24 @@ create trigger org_thes_deleted
   execute procedure org_thes_deleted();
 
 -- orgModTaxInsert (orgtaxlink)
+drop function if exists org_tax_inserted() cascade;
+create function org_tax_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(orgid)
+      from orgtaxlink
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_tax_inserted on orgtaxlink;
+create trigger org_tax_inserted
+  after insert
+  on orgtaxlink
+  for each row
+  execute procedure org_tax_inserted();
 
 -- orgModTaxDelete (orgtaxlink)
 drop function if exists org_tax_deleted() cascade;
@@ -561,6 +686,24 @@ create trigger org_tax_deleted
   execute procedure org_tax_deleted();
 
 -- orgModPubContact (pub_org)
+drop function if exists pub_org_updated() cascade;
+create function pub_org_updated()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from pub_org
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists pub_org_updated on pub_org;
+create trigger pub_org_updated
+  after update of org_contact_id, isActive
+  on pub_org
+  for each row
+  execute procedure pub_org_updated();
 
 -- updateAddressOrgMod (tbladdress)
 drop function if exists address_updated() cascade;
@@ -605,8 +748,8 @@ create trigger comm_updated
   execute procedure comm_updated();
 
 -- updateContactOrgMod (tblcontact)
-drop function if exists contact_modified() cascade;
-create function contact_modified()
+drop function if exists contact_updated() cascade;
+create function contact_updated()
   returns trigger
   as $$
     contact_id = TD["new"]["id"]
@@ -619,39 +762,341 @@ create function contact_modified()
     results = plpy.execute(plan, [contact_id])
   $$ language plpythonu;
 
-drop trigger if exists contact_trigger on tblcontact;
-create trigger contact_trigger
+drop trigger if exists contact_updated on tblcontact;
+create trigger contact_updated
   after update on tblcontact
   for each row
-  execute procedure contact_modified();
+  execute procedure contact_updated();
 
 -- deleteIncomplete (org.iscomplete)
+drop function if exists org_is_complete_updated() cascade;
+create function org_is_complete_updated()
+  returns trigger
+  as $$
+    begin
+      update org set deleted = now() where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_is_complete_updated on org;
+create trigger org_is_complete_updated
+  after update of iscomplete
+  on org
+  for each row
+  when (OLD.iscomplete = 1 and NEW.iscomplete = 0)
+  execute procedure org_is_complete_updated();
 
 -- pubOrgInsert (pub_org)
+drop function if exists pub_org_inserted() cascade;
+create function pub_org_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from pub_org
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists pub_org_inserted on pub_org;
+create trigger pub_org_inserted
+  after insert
+  on pub_org
+  for each row
+  execute procedure pub_org_inserted();
 
 -- skipping meta_update_address (tbladdress)
 
 -- org_services (ic_site_services)
+drop function if exists ic_services_updated() cascade;
+create function ic_services_updated()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.serviceid);
+      select org_modified(NEW.serviceid);
+      update org
+      set modified = now()
+      where id = any(
+        select ic_agency_sites.siteid
+        from ic_agency_sites key join ic_site_services
+        where serviceid in(OLD.serviceid, NEW.serviceid)
+      );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_services_updated on ic_site_services;
+create trigger ic_services_updated
+  after update
+  on ic_site_services
+  for each row
+  execute procedure ic_services_updated();
 
 -- skipping meta_delete_address
 
 -- mod (taxgroups)
+drop function if exists tax_groups_updated() cascade;
+create function tax_groups_updated()
+  returns trigger
+  as $$
+    begin
+      update taxgroups
+      set modified = now()
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists tax_groups_updated on ic_site_services;
+create trigger tax_groups_updated
+  after update of taxgroup, taxid, isactive, haschildren, islocal
+  on taxgroups
+  for each row
+  execute procedure tax_groups_updated();
 
 -- org_sites (ic_agency_sites)
+drop function if exists ic_sites_updated() cascade;
+create function ic_sites_updated()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.siteid);
+      select org_modified(NEW.siteid);
+      update org
+      set modified = now()
+      where id = any(
+        select orgid
+        from ic_agencies key join ic_agency_sites
+        where siteid in (OLD.siteid, NEW.siteid)
+      );
+      update org
+      set modified = now()
+      where id = any(
+        select serviceid
+        from ic_site_services
+        where siteid in (OLD.siteid, NEW.siteid)
+      );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_sites_updated on ic_agency_sites;
+create trigger ic_sites_updated
+  after update
+  on ic_agency_sites
+  for each row
+  execute procedure ic_sites_updated();
 
 -- org_services_insert (ic_site_services)
+drop function if exists ic_services_inserted() cascade;
+create function ic_services_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(NEW.serviceid);
+      update org
+        set modified = now()
+        where id = any(
+          select ic_agency_sites.siteid
+          from ic_agency_sites key join ic_site_services
+          where serviceid in (NEW.serviceid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_services_inserted on ic_site_services;
+create trigger ic_services_inserted
+  after insert
+  on ic_site_services
+  for each row
+  execute procedure ic_services_inserted();
 
 -- org_services_delete (ic_site_services)
+drop function if exists ic_services_deleted() cascade;
+create function ic_services_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.serviceid);
+      update org
+        set modified = now()
+        where id = any(
+          select ic_agency_sites.siteid
+          from ic_agency_sites key join ic_site_services
+          where serviceid in (OLD.serviceid));
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_services_deleted on ic_site_services;
+create trigger ic_services_deleted
+  after delete
+  on ic_site_services
+  for each row
+  execute procedure ic_services_deleted();
 
 -- org_sites_insert (ic_agency_sites)
+drop function if exists ic_sites_inserted() cascade;
+create function ic_sites_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(NEW.siteid);
+      update org
+        set modified = now()
+        where id = any(
+          select orgid
+          from ic_agencies key join ic_agency_sites
+          where siteid in (NEW.siteid)
+        );
+      update org 
+        set modified = now()
+        where id = any(
+          select serviceid
+          from ic_site_services
+          where siteid in (NEW.siteid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_sites_inserted on ic_agency_sites;
+create trigger ic_sites_inserted
+  after insert
+  on ic_agency_sites
+  for each row
+  execute procedure ic_sites_inserted();
 
 -- org_sites_delete (ic_agency_sites)
+drop function if exists ic_sites_deleted() cascade;
+create function ic_sites_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.siteid);
+      update org
+        set modified = now()
+        where id = any(
+          select orgid
+          from ic_agencies key join ic_agency_sites
+          where siteid in (OLD.siteid)
+        );
+      update org
+        set modified = now()
+        where id = any(
+          select serviceid
+          from ic_site_services
+          where siteid in (OLD.siteid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_sites_deleted on ic_agency_sites;
+create trigger ic_sites_deleted
+  after delete
+  on ic_agency_sites
+  for each row
+  execute procedure ic_sites_deleted();
 
 -- org_agency_insert (ic_agencies)
+drop function if exists ic_agency_inserted() cascade;
+create function ic_agency_inserted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(NEW.orgid);
+      update org
+        set modified = now()
+        where id = any(
+          select siteid
+          from ic_agencies key join ic_agency_sites
+          where orgid in (NEW.orgid));
+      update org
+        set modified = now()
+        where id = any(
+          select serviceid
+          from ic_agencies key join ic_agency_sites key join ic_site_services
+          where orgid in (NEW.orgid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_agency_inserted on ic_agencies;
+create trigger ic_agency_inserted
+  after insert
+  on ic_agencies
+  for each row
+  execute procedure ic_agency_inserted();
 
 -- org_agency_delete (ic_agencies)
+drop function if exists ic_agency_deleted() cascade;
+create function ic_agency_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.orgid);
+      update org
+        set modified = now()
+        where id = any(
+          select siteid
+          from ic_agencies key join ic_agency_sites
+          where orgid in (OLD.orgid)
+        );
+      update org
+        set modified = now()
+        where id = any(
+          select serviceid
+          from ic_agencies key join ic_agency_sites key join ic_site_services
+          where orgid in (OLD.orgid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_agency_deleted on ic_agencies;
+create trigger ic_agency_deleted
+  after delete
+  on ic_agencies
+  for each row
+  execute procedure ic_agency_deleted();
 
 -- org_agency (ic_agencies)
+drop function if exists ic_agency_updated() cascade;
+create function ic_agency_updated()
+  returns trigger
+  as $$
+    begin
+      select org_modified(OLD.orgid);
+      select org_modified(NEW.orgid);
+      update org
+       set modified = now()
+       where id = any(
+        select siteid from ic_agencies key join ic_agency_sites
+        where orgid in (OLD.orgid, NEW.orgid)
+      );
+      update org
+        set modified = now() 
+        where id = any(
+          select serviceid
+          from ic_agencies key join ic_agency_sites key join ic_site_services
+          where orgid in (OLD.orgid, NEW.orgid)
+        );
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists ic_agency_updated on ic_agencies;
+create trigger ic_agency_updated
+  after update
+  on ic_agencies
+  for each row
+  execute procedure ic_agency_updated();
 
 -- skipping org_meta_insert_site
 -- skipping org_meta_delete_site
