@@ -358,50 +358,50 @@ create trigger org_inserted
 -- create_org_name_sort_key (tblorgname)
 
 -- insert_uf (org_thes)
-  drop function if exists org_thes_inserted() cascade;
-  create function org_thes_inserted()
-    returns trigger
-    as $$
-      begin
-        insert into org_thes(org_id, thes_id, official_id)
-        select NEW.org_id, rel_id, NEW.thes_id
-        from thes_rel
-        where rel_type = 'uf'
-        and thes_id = NEW.thes_id;
-        return null;
-      end;
-    $$ language plpgsql;
+drop function if exists org_thes_inserted() cascade;
+create function org_thes_inserted()
+  returns trigger
+  as $$
+    begin
+      insert into org_thes(org_id, thes_id, official_id)
+      select NEW.org_id, rel_id, NEW.thes_id
+      from thes_rel
+      where rel_type = 'uf'
+      and thes_id = NEW.thes_id;
+      return null;
+    end;
+  $$ language plpgsql;
 
-  drop trigger if exists org_thes_inserted on org_thes;
-  create trigger org_thes_inserted
-    after insert
-    on org_thes
-    for each row
-    when(NEW.thes_id = NEW.official_id)
-    execute procedure org_thes_inserted();
+drop trigger if exists org_thes_inserted on org_thes;
+create trigger org_thes_inserted
+  after insert
+  on org_thes
+  for each row
+  when(NEW.thes_id = NEW.official_id)
+  execute procedure org_thes_inserted();
 
 -- orgModNameDel (org_names)
 
 -- delete_uf (org_thes)
-  drop function if exists org_thes_deleted() cascade;
-  create function org_thes_deleted()
-    returns trigger
-    as $$
-      begin
-        delete from org_thes
-        where official_id = OLD.official_id
-        and org_id = OLD.org_id;
-        return null;
-      end;
-    $$ language plpgsql;
+drop function if exists org_thes_deleted() cascade;
+create function org_thes_deleted()
+  returns trigger
+  as $$
+    begin
+      delete from org_thes
+      where official_id = OLD.official_id
+      and org_id = OLD.org_id;
+      return null;
+    end;
+  $$ language plpgsql;
 
-  drop trigger if exists org_thes_deleted on org_thes;
-  create trigger org_thes_deleted
-    after insert
-    on org_thes
-    for each row
-    when(OLD.thes_id = OLD.official_id)
-    execute procedure org_thes_deleted();
+drop trigger if exists org_thes_deleted on org_thes;
+create trigger org_thes_deleted
+  after insert
+  on org_thes
+  for each row
+  when(OLD.thes_id = OLD.official_id)
+  execute procedure org_thes_deleted();
 
 -- skipping meta_insert_thes_o
 -- skipping meta_insert_thes_o
@@ -413,12 +413,66 @@ create trigger org_inserted
 -- skipping meta_update_res after
 
 -- orgModContactDel (org_contact_rel)
+drop function if exists org_contact_deleted() cascade;
+create function org_contact_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_contact_rel
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_contact_deleted on org_contact_rel;
+create trigger org_contact_deleted
+  after delete
+  on org_contact_rel
+  for each row
+  execute procedure org_contact_deleted();
 
 -- orgModCommIns (org_comm_rel)
 
 -- orgModCommDel (org_comm_rel)
+drop function if exists org_comm_deleted() cascade;
+create function org_comm_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_comm_rel
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_comm_deleted on org_comm_rel;
+create trigger org_comm_deleted
+  after delete
+  on org_comm_rel
+  for each row
+  execute procedure org_comm_deleted();
 
 -- orgModAddressDel (org_address_rel)
+drop function if exists org_address_deleted() cascade;
+create function org_address_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_address_rel
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_address_deleted on org_address_rel;
+create trigger org_address_deleted
+  after delete
+  on org_address_rel
+  for each row
+  execute procedure org_address_deleted();
 
 -- orgModAddressIns (org_address_rel)
 
@@ -465,10 +519,46 @@ create trigger service_trigger
 -- orgUpdated (org)
 
 -- orgModThesDelete (org_thes)
+drop function if exists org_thes_deleted() cascade;
+create function org_thes_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(org_id)
+      from org_thes
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_thes_deleted on org_thes;
+create trigger org_thes_deleted
+  after delete
+  on org_thes
+  for each row
+  execute procedure org_thes_deleted();
 
 -- orgModTaxInsert (orgtaxlink)
 
 -- orgModTaxDelete (orgtaxlink)
+drop function if exists org_tax_deleted() cascade;
+create function org_tax_deleted()
+  returns trigger
+  as $$
+    begin
+      select org_modified(orgid)
+      from orgtaxlink
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_tax_deleted on orgtaxlink;
+create trigger org_tax_deleted
+  after delete
+  on orgtaxlink
+  for each row
+  execute procedure org_tax_deleted();
 
 -- orgModPubContact (pub_org)
 
