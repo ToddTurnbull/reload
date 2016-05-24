@@ -169,24 +169,24 @@ create trigger org_name_deleted
   for each row
   execute procedure org_name_deleted();
 
-  -- org_del (org)
-  drop function if exists org_deleted() cascade;
-  create function org_deleted()
-    returns trigger
-    as $$
-      begin
-        insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
-        values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
-        return null;
-      end;
-    $$ language plpgsql;
+-- org_del (org)
+drop function if exists org_deleted() cascade;
+create function org_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
+      values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
+      return null;
+    end;
+  $$ language plpgsql;
 
-  drop trigger if exists org_deleted on org;
-  create trigger org_deleted
-    before delete
-    on org
-    for each row
-    execute procedure org_deleted();
+drop trigger if exists org_deleted on org;
+create trigger org_deleted
+  before delete
+  on org
+  for each row
+  execute procedure org_deleted();
 
 -- update_org_name (org.org_name_id)
 drop function if exists org_name_updated() cascade;
@@ -563,8 +563,8 @@ create trigger org_tax_deleted
 -- orgModPubContact (pub_org)
 
 -- updateAddressOrgMod (tbladdress)
-drop function if exists address_modified() cascade;
-create function address_modified()
+drop function if exists address_updated() cascade;
+create function address_updated()
   returns trigger
   as $$
     address_id = TD["new"]["id"]
@@ -577,15 +577,15 @@ create function address_modified()
     results = plpy.execute(plan, [address_id])
   $$ language plpythonu;
 
-drop trigger if exists address_trigger on tbladdress;
-create trigger address_trigger
+drop trigger if exists address_updated on tbladdress;
+create trigger address_updated
   after update on tbladdress
   for each row
-  execute procedure address_modified();
+  execute procedure address_updated();
 
 -- updateCommOrgMod (tblcomm)
-drop function if exists comm_modified() cascade;
-create function comm_modified()
+drop function if exists comm_updated() cascade;
+create function comm_updated()
   returns trigger
   as $$
     comm_id = TD["new"]["id"]
@@ -598,11 +598,11 @@ create function comm_modified()
     results = plpy.execute(plan, [comm_id])
   $$ language plpythonu;
 
-drop trigger if exists comm_trigger on tblcomm;
-create trigger comm_trigger
+drop trigger if exists comm_updated on tblcomm;
+create trigger comm_updated
   after update on tblcomm
   for each row
-  execute procedure comm_modified();
+  execute procedure comm_updated();
 
 -- updateContactOrgMod (tblcontact)
 drop function if exists contact_modified() cascade;
