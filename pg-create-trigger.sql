@@ -164,7 +164,7 @@ create function org_name_deleted()
 
 drop trigger if exists org_name_deleted on org_names;
 create trigger org_name_deleted
-  before delete
+  after delete
   on org_names
   for each row
   execute procedure org_name_deleted();
@@ -351,11 +351,73 @@ create trigger org_inserted
 -- skipping pub_org_del
 -- skipping MetaIndex
 
+-- make_org_name_sort_key()
 -- update_name_sort_parent (tblorgname)
+-- create_org_name_sort_key (tblorgname)
+drop function if exists name_sort() cascade;
+create function name_sort()
+  returns trigger
+  as $$
+    parent_id = TD["new"]["parentid"]
+    if parent_id:
+      select_parent = (
+        "select tblorgname.id as name_id, parent.sort_key as parent_key"
+        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
+        "where tblorgname.parentid = $1 "
+        "and tblorgname.orgnametypeid = 1 "
+        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
+      )
+      select_plan = plpy.prepare(select_parent, ["int"])
+      select_results = plpy.execute(plan, [parent_id])
+    else:
+      select_parent = (
+        "select tblorgname.id as name_id, parent.sort_key as parent_key"
+        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
+        "where tblorgname.parentid is null "
+        "and tblorgname.orgnametypeid = 1 "
+        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
+      )
+      select_plan = plpy.prepare(select_parent)
+      select_results = plpy.execute(plan)
+    for i, result in enumerate(select_results):
+      name_key = str(i).zfill(4)
+      update_query = (
+        "update tblorgname "
+        "set sort_key = coalesce($1, '.', $2) "
+        "where id = $3" 
+      )
+      update_plan = plpy.prepare(update_query, ["text", "text", "int"])
+      update_results = plpy.execute(update_plan, [result["parent_key"], name_key, result["name_id"]])
+  $$ language plpythonu;
+
+drop trigger if exists name_sort on tblorgname;
+create trigger name_sort
+  after insert or update of name, parentid, sort
+  on tblorgname
+  for each row
+  execute procedure name_sort();
 
 -- update_child_sort_key (tblorgname)
+drop function if exists name_sort_updated() cascade;
+create function name_sort_updated()
+  returns trigger
+  as $$
+    begin
+      update tblorgname
+        set sort_key = concat(NEW.sort_key, substring(tblorgname.sort_key, length(tblorgname.sort_key)-4))
+        where parentid = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
 
--- create_org_name_sort_key (tblorgname)
+drop trigger if exists name_sort_updated on org_thes;
+create trigger name_sort_updated
+  after update of sort_key
+  on tblorgname
+  for each row
+  when(NEW.orgnametypeid = 1)
+  execute procedure name_sort_updated();
+
 
 -- insert_uf (org_thes)
 drop function if exists org_thes_inserted() cascade;
@@ -397,7 +459,7 @@ create function org_thes_deleted()
 
 drop trigger if exists org_thes_deleted on org_thes;
 create trigger org_thes_deleted
-  after insert
+  after delete
   on org_thes
   for each row
   when(OLD.thes_id = OLD.official_id)
@@ -599,7 +661,7 @@ create function org_thes_inserted()
     end;
   $$ language plpgsql;
 
-drop trigger if exists org_thes_inserted on org_names;
+drop trigger if exists org_thes_inserted on org_thes;
 create trigger org_thes_inserted
   after insert
   on org_thes
