@@ -1,5 +1,7 @@
 -- set sequences for autoincrement to max(id)
 
+set search_path to tempdb;
+
 drop function if exists set_autoincrement();
 create function set_autoincrement()
   returns void
@@ -71,7 +73,7 @@ create function set_autoincrement()
         pg_get_serial_sequence('{0}', '{1}'),
         (select max({1}) from {0})
       )""".format(*sequence)
-      # plpy.notice(sequence)
+      plpy.notice(setval)
       plan = plpy.prepare(setval)
       result = plpy.execute(plan)
   $$ language plpythonu;
