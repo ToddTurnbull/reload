@@ -19,3 +19,4 @@ create domain tempdb.multiocc as text;
 \i pg-create-trigger-tblorgname.sql
 
 \i pg-setval.sql
+select set_autoincrement();

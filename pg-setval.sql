@@ -77,5 +77,3 @@ create function set_autoincrement()
       plan = plpy.prepare(setval)
       result = plpy.execute(plan)
   $$ language plpythonu;
-
-select set_autoincrement();
