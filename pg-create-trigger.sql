@@ -1,83 +1,6 @@
 set search_path to tempdb;
 
 
--- make_org_name_sort_key()
--- update_name_sort_parent (tblorgname)
--- create_org_name_sort_key (tblorgname)
-drop function if exists name_inserted_updated() cascade;
-create function name_inserted_updated()
-  returns trigger
-  as $$
-    new_parent = TD["new"]["parentid"]
-    if new_parent:
-      select_parent = (
-        "select tblorgname.id as name_id, parent.sort_key as parent_key"
-        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
-        "where tblorgname.parentid = $1 "
-        "and tblorgname.orgnametypeid = 1 "
-        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
-      )
-      select_plan = plpy.prepare(select_parent, ["int"])
-      select_results = plpy.execute(plan, [new_parent])
-    else:
-      select_parent = (
-        "select tblorgname.id as name_id, parent.sort_key as parent_key"
-        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
-        "where tblorgname.parentid is null "
-        "and tblorgname.orgnametypeid = 1 "
-        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
-      )
-      select_plan = plpy.prepare(select_parent)
-      select_results = plpy.execute(plan)
-    for i, result in enumerate(select_results):
-      name_key = str(i).zfill(4)
-      update_query = (
-        "update tblorgname "
-        "set sort_key = concat($1, '.', $2) "
-        "where id = $3" 
-      )
-      update_args = [
-        result["parent_key"],
-        name_key,
-        result["name_id"]
-      ]
-      update_plan = plpy.prepare(update_query, ["text", "text", "int"])
-      update_results = plpy.execute(update_plan, update_args)
-  $$ language plpythonu;
-
-drop trigger if exists name_inserted_updated on tblorgname;
-create trigger name_inserted_updated
-  after insert or update of name, sort, parentid
-  on tblorgname
-  for each row
-  execute procedure name_inserted_updated();
-
-
--- update_child_sort_key (tblorgname)
--- tblOrgName.Level integer null COMPUTE ((length(sort_key)-1)/5)
-drop function if exists name_sort_key_updated() cascade;
-create function name_sort_key_updated()
-  returns trigger
-  as $$
-    begin
-      update tblorgname
-        set level = ((length(NEW.sort_key)-1)/5)
-        where id = NEW.id;
-      update tblorgname
-        set sort_key = concat(NEW.sort_key, substring(tblorgname.sort_key, length(tblorgname.sort_key)-4))
-        where parentid = NEW.id;
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists name_sort_key_updated on tblorgname;
-create trigger name_sort_key_updated
-  after update of sort_key
-  on tblorgname
-  for each row
-  execute procedure name_sort_key_updated();
-
-
 -- activeDate (org.isactive)
 drop function if exists active_or_deleted() cascade;
 create function active_or_deleted()
@@ -97,127 +20,6 @@ create trigger org_is_active
   on org
   for each row
   execute procedure active_or_deleted();
-
-
--- track deletions with org_rel_del table
--- org_address_del (org_address_rel)
-drop function if exists address_deleted() cascade;
-create function address_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
-      values(OLD.org_id, OLD.address_id, OLD.added, OLD.note, now(), 271);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists address_deleted on org_address_rel;
-create trigger address_deleted
-  after delete
-  on org_address_rel
-  for each row
-  execute procedure address_deleted();
-
-
--- org_comm_del (org_comm_rel)
-drop function if exists comm_deleted() cascade;
-create function comm_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
-      values(OLD.org_id, OLD.comm_id, OLD.added, OLD.note, now(), 270);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists comm_deleted on org_comm_rel;
-create trigger comm_deleted
-  after delete
-  on org_comm_rel
-  for each row
-  execute procedure comm_deleted();
-
-
--- org_contact_del (org_contact_rel)
-drop function if exists contact_deleted() cascade;
-create function contact_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
-      values(OLD.org_id, OLD.contact_id, OLD.added, OLD.note, now(), 272);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists contact_deleted on org_contact_rel;
-create trigger contact_deleted
-  after delete
-  on org_contact_rel
-  for each row
-  execute procedure contact_deleted();
-
-
--- org_service_del (org_service_rel)
-drop function if exists service_deleted() cascade;
-create function service_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
-      values(OLD.org_id, OLD.service_id, OLD.added, OLD.note, now(), 275);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists service_deleted on org_service_rel;
-create trigger service_deleted
-  after delete
-  on org_service_rel
-  for each row
-  execute procedure service_deleted();
-
-
--- org_name_del (org_names)
-drop function if exists org_name_deleted() cascade;
-create function org_name_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_rel_del(org_id, rel_id, added, deleted, table_id)
-      values(OLD.org_id, OLD.org_name_id, now(), now(), 249);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists org_name_deleted on org_names;
-create trigger org_name_deleted
-  after delete
-  on org_names
-  for each row
-  execute procedure org_name_deleted();
-
-
--- org_del (org)
-drop function if exists org_deleted() cascade;
-create function org_deleted()
-  returns trigger
-  as $$
-    begin
-      insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
-      values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists org_deleted on org;
-create trigger org_deleted
-  before delete
-  on org
-  for each row
-  execute procedure org_deleted();
 
 
 -- update_org_name (org.org_name_id)
@@ -1167,6 +969,127 @@ create trigger service_updated
   on tblservice
   for each row
   execute procedure service_updated();
+
+
+-- track deletions with org_rel_del table
+-- org_address_del (org_address_rel)
+drop function if exists address_deleted() cascade;
+create function address_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
+      values(OLD.org_id, OLD.address_id, OLD.added, OLD.note, now(), 271);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists address_deleted on org_address_rel;
+create trigger address_deleted
+  after delete
+  on org_address_rel
+  for each row
+  execute procedure address_deleted();
+
+
+-- org_comm_del (org_comm_rel)
+drop function if exists comm_deleted() cascade;
+create function comm_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
+      values(OLD.org_id, OLD.comm_id, OLD.added, OLD.note, now(), 270);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists comm_deleted on org_comm_rel;
+create trigger comm_deleted
+  after delete
+  on org_comm_rel
+  for each row
+  execute procedure comm_deleted();
+
+
+-- org_contact_del (org_contact_rel)
+drop function if exists contact_deleted() cascade;
+create function contact_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
+      values(OLD.org_id, OLD.contact_id, OLD.added, OLD.note, now(), 272);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists contact_deleted on org_contact_rel;
+create trigger contact_deleted
+  after delete
+  on org_contact_rel
+  for each row
+  execute procedure contact_deleted();
+
+
+-- org_service_del (org_service_rel)
+drop function if exists service_deleted() cascade;
+create function service_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id,rel_id,added,note,deleted,table_id)
+      values(OLD.org_id, OLD.service_id, OLD.added, OLD.note, now(), 275);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists service_deleted on org_service_rel;
+create trigger service_deleted
+  after delete
+  on org_service_rel
+  for each row
+  execute procedure service_deleted();
+
+
+-- org_name_del (org_names)
+drop function if exists org_name_deleted() cascade;
+create function org_name_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_rel_del(org_id, rel_id, added, deleted, table_id)
+      values(OLD.org_id, OLD.org_name_id, now(), now(), 249);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_name_deleted on org_names;
+create trigger org_name_deleted
+  after delete
+  on org_names
+  for each row
+  execute procedure org_name_deleted();
+
+
+-- org_del (org)
+drop function if exists org_deleted() cascade;
+create function org_deleted()
+  returns trigger
+  as $$
+    begin
+      insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
+      values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_deleted on org;
+create trigger org_deleted
+  before delete
+  on org
+  for each row
+  execute procedure org_deleted();
 
 
 -- skipping WebChangeTemplate
