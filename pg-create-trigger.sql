@@ -236,7 +236,7 @@ create function org_updated()
   returns trigger
   as $$
     begin
-      insert into orgUpdated(orgid, updated)
+      insert into orgupdated(orgid, updated)
       values(NEW.id, NEW.updated);
       return null;
     end;
@@ -283,7 +283,7 @@ create function tax_groups_updated()
     end;
   $$ language plpgsql;
 
-drop trigger if exists tax_groups_updated on ic_site_services;
+drop trigger if exists tax_groups_updated on taxgroups;
 create trigger tax_groups_updated
   after update of taxgroup, taxid, isactive, haschildren, islocal
   on taxgroups
