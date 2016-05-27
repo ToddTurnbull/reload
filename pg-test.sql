@@ -1,16 +1,27 @@
 set search_path to tempdb;
 
--- tblorgname
-create function name_level(sort_key text)
-  returns integer
-  as $$
-    select ((length($1)-1)/5);
-  $$ language sql;
--- org_names
+drop domain if exists tempdb.test_results cascade;
+create domain tempdb.test_results as text;
 
-create type new_org as (id integer, cic_id text);
-create function insert_org(name_id integer, cic_id text, service_level text)
-  returns new_org
-  as $$
-    insert into org(org_name_id, cic_id, service_level) values($1, $2, $3) returning id, cic_id;
-  $$ language sql;
+-- triggers
+
+-- org_is_active
+\i pg-test-trigger-isactive.sql
+
+-- org_name_updated
+
+-- name_parent_updated
+
+-- org_inserted
+
+-- org_thes_deleted
+
+-- org_updated
+
+-- org_is_complete_updated
+\i pg-test-trigger-iscomplete.sql
+
+-- tax_groups_updated
+
+-- org_deleted
+
