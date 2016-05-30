@@ -488,7 +488,9 @@ create function org_names_deleted()
   returns trigger
   as $$
     begin
-      select org_modified(OLD.org_id);
+      if OLD.org_name_id = any(select id from tblorgname where  orgnametypeid != 1) then
+        perform org_modified(OLD.org_id);
+      end if;
       return null;
     end;
   $$ language plpgsql;
@@ -507,9 +509,9 @@ create function org_names_inserted()
   returns trigger
   as $$
     begin
-      select org_modified(org_id)
-      from org_names
-      where id = NEW.id;
+      if NEW.org_name_id = any(select id from tblorgname where  orgnametypeid != 1) then
+        select org_modified(NEW.org_id);
+      end if;
       return null;
     end;
   $$ language plpgsql;
