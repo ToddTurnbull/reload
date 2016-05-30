@@ -27,6 +27,7 @@ drop function if exists org_name_updated() cascade;
 create function org_name_updated()
   returns trigger
   as $$
+    plpy.notice("I am org_name_updated()")
     org_id = TD["new"]["id"]
     name_id = TD["new"]["org_name_id"]
 
