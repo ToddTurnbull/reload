@@ -295,7 +295,7 @@ create table tblOrgName (
   Level integer null,
   Sort varchar(100) null,
   sort_key varchar(100) null,
-  added timestamp null default CURRENT_TIMESTAMP
+  added timestamp null default current_timestamp
 );
 
 create table tlkpOrgNameType (
@@ -314,7 +314,7 @@ create table org_names (
   id serial primary key,
   org_id integer not null,
   org_name_id integer not null,
-  added timestamp null default CURRENT_TIMESTAMP,
+  added timestamp null default current_timestamp,
   unique(org_id, org_name_id)
 );
 
@@ -324,9 +324,9 @@ create table org (
   org_name_id integer not null,
   update_note text null,
   cic_id varchar(7) not null unique,
-  updated timestamp null default CURRENT_TIMESTAMP,
+  updated timestamp null default current_timestamp,
   service_level varchar(60) not null,
-  created timestamp not null default CURRENT_TIMESTAMP,
+  created timestamp not null default current_timestamp,
   isactive boolean not null default true,
   iscomplete boolean not null default false,
   modified timestamp null,
@@ -344,7 +344,7 @@ create table org_comm_rel (
   id serial primary key,
   org_id integer not null,
   comm_id integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   note text null
 );
 
@@ -352,7 +352,7 @@ create table org_address_rel (
   id serial primary key,
   org_id integer not null,
   address_id integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   note varchar(100) null,
   label varchar(50) null
 );
@@ -361,7 +361,7 @@ create table org_contact_rel (
   id serial primary key,
   org_id integer not null,
   contact_id integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   note text null
 );
 
@@ -379,7 +379,7 @@ create table org_service_rel (
   id serial primary key,
   org_id integer not null,
   service_id integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   note text null
 );
 
@@ -396,7 +396,7 @@ create table pub_org (
   id serial primary key,
   pub_id integer not null,
   org_id integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   org_contact_id integer null,
   deleted timestamp null,
   isActive boolean not null default true,
@@ -568,7 +568,7 @@ create table orgNotes (
   orgId integer not null,
   noteType integer not null,
   note text not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   modified timestamp null,
   isactive boolean not null default true,
   ispublic boolean not null default true,
@@ -599,7 +599,7 @@ create table taxGroups (
   taxID integer not null,
   isActive boolean not null,
   hasChildren boolean not null,
-  added timestamp null default CURRENT_TIMESTAMP,
+  added timestamp null default current_timestamp,
   isLocal boolean not null default false,
   modified timestamp null,
   unique(taxgroup, taxid)
@@ -644,7 +644,7 @@ create table orgTaxLink (
   id serial primary key,
   orgId integer not null,
   linkId integer not null,
-  added timestamp null default CURRENT_TIMESTAMP,
+  added timestamp null default current_timestamp,
   unique(orgId, linkId)
 );
 
@@ -731,7 +731,7 @@ create table pubTax (
   id serial primary key,
   pubId integer not null,
   taxId integer not null,
-  added timestamp not null default CURRENT_TIMESTAMP,
+  added timestamp not null default current_timestamp,
   unique(pubid, taxid)
 );
 
@@ -828,7 +828,7 @@ create table contact_comm (
   comm_id integer not null,
   type integer null,
   note varchar(50) null,
-  added timestamp not null default CURRENT_TIMESTAMP
+  added timestamp not null default current_timestamp
 );
 
 create table external (
