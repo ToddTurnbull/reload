@@ -6,9 +6,10 @@ create domain tempdb.test_results as text;
 -- triggers
 
 -- org_is_active
-\i pg-test-trigger-isactive.sql
+\i trigger-isactive.sql
 
 -- org_name_updated
+\i trigger-org-name-update.sql
 
 -- name_parent_updated
 
@@ -19,7 +20,7 @@ create domain tempdb.test_results as text;
 -- org_updated
 
 -- org_is_complete_updated
-\i pg-test-trigger-iscomplete.sql
+\i trigger-iscomplete.sql
 
 -- tax_groups_updated
 
