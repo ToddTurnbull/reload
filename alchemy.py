@@ -2,6 +2,8 @@ from sqlalchemy import Boolean
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
 from sqlalchemy import DateTime
+from sqlalchemy import DECIMAL
+from sqlalchemy import func
 from sqlalchemy import Integer
 from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import Sequence
@@ -18,9 +20,11 @@ class Data(Base):
   recordnumber = Column(String(5), nullable=False, unique=True)
   internalmemo = Column(String)
   comments = Column(String)
-  recnum = Column(String(7),
+  recnum = Column(
+    String(7),
     CheckConstraint("left(RecNum, 3) = 'WRN'"),
-    nullable=False, unique=True
+    nullable=False,
+    unique=True
   )
   org1 = Column(String(100))
   org2 = Column(String(70))
@@ -114,8 +118,6 @@ class Data(Base):
   org1_sort = Column(String(100))
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, nullable=False)
-  def __repr__(self):
-    return "<Data (RecordNumber='{}')>".format(self.recordnumber)
 
 class Thes(Base):
   __tablename__ = "thes"
@@ -125,15 +127,11 @@ class Thes(Base):
   action = Column(String(6))
   cat_id = Column(Integer)
   sort = Column(String(6))
-  def __repr__(self):
-    return "<Thes (Term='{}')>".format(self.term)
 
 class ThesCat(Base):
   __tablename__ = "thes_cat"
   id = Column(Integer, primary_key=True)
   category = Column(String(30), nullable=False)
-  def __repr__(self):
-    return "<ThesCat (Category='{}')>".format(self.category)
 
 class ThesTree(Base):
   __tablename__ = "thes_tree"
@@ -141,26 +139,11 @@ class ThesTree(Base):
   term = Column(String, nullable=False)
   parent_id = Column(Integer)
   cat_id = Column(Integer, nullable=False)
-  def __repr__(self):
-    return "<ThesTree (Term='{}')>".format(self.term)
-
-class ThesData(Base):
-  __tablename__ = "thes_data"
-  id = Column(Integer, primary_key=True)
-  thes_id = Column(Integer, nullable=False)
-  data_id = Column(Integer, nullable=False)
-  __table_args__ = (
-    UniqueConstraint("thes_id", "data_id"),
-  )
-  def __repr__(self):
-    return "<ThesData (Thes='{}', Data='{}')>".format(self.thes_id, self.data_id)
 
 class City(Base):
   __tablename__ = "city"
   id = Column(Integer, primary_key=True)
   city = Column(String(20), nullable=False)
-  def __repr__(self):
-    return "<City (City='{}')>".format(self.city)
 
 class Pub(Base):
   __tablename__ = "pub"
@@ -170,8 +153,6 @@ class Pub(Base):
   isdefault = Column(Boolean, nullable=False, default=False)
   lastUpdated = Column(DateTime)
   note = Column(String)
-  def __repr__(self):
-    return "<Pub (Code='{}', Title='{}')>".format(self.code, self.title)
 
 class ThesRelated(Base):
   __tablename__ = "thes_related"
@@ -180,15 +161,6 @@ class ThesRelated(Base):
   __table_args__ = (
     PrimaryKeyConstraint("thes_id", "related_id"),
   )
-  def __repr__(self):
-    return "<ThesRelated (Thes='{}', Related='{}')>".format(self.thes_id, self.related_id)
-
-class BlueEntry(Base):
-  __tablename__ = "blue_entry"
-  entry = Column(Integer, nullable=False, unique=True)
-  data_id = Column(Integer, primary_key=True)
-  def __repr__(self):
-    return "<BlueEntry (Entry='{}', Data='{}')>".format(self.entry, self.data_id)
 
 class ThesReject(Base):
   __tablename__ = "thes_reject"
@@ -198,28 +170,260 @@ class ThesReject(Base):
   __table_args__ = (
     PrimaryKeyConstraint("thes_id", "accept_id"),
   )
-  def __repr__(self):
-    return "<ThesReject (Thes='{}', Accept='{}')>".format(self.thes_id, self.accept_id)
 
-class ThesBlueEntry(Base):
-  __tablename__ = "thes_blue_entry"
-  thes_id = Column(Integer, nullable=False)
-  entry = Column(Integer, nullable=False)
+class AddressType(Base):
+  __tablename__ = "tlkpaddresstype"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(50), nullable=False)
+
+class Address(Base):
+  __tablename__ = "address"
+  id = Column(Integer, primary_key=True)
+  addresstypeid = Column(Integer, nullable=False)
+  incareof = Column(String(60))
+  building = Column(String(50))
+  address = Column(String(50))
+  city = Column(String(50))
+  province = Column(String(2), default="ON")
+  postalcode = Column(String(7), CheckConstraint("postalcode ~* '[a-z][0-9][a-z] [0-9][a-z][0-9]'"))
+  intersection = Column(String(255))
+  unit = Column(String(10))
+  unitvalue = Column(String(10))
+  streetnumber = Column(String(10))
+  streetsuffix = Column(String(10))
+  streetdirection = Column(String(2))
+  unitextra = Column(String(25))
+  deliverynumber = Column(String(10))
+  deliverystation = Column(String(30))
+  deliverymode = Column(String(20))
+  busroute = Column(String(50))
+  utm_x = Column(Integer)
+  utm_y = Column(Integer)
+  ismappable = Column(Boolean)
+  latitude = Column(DECIMAL(11,9))
+  longitude = Column(DECIMAL(11,9))
   __table_args__ = (
-    PrimaryKeyConstraint("thes_id", "entry"),
+    CheckConstraint("""
+      (utm_x is null and utm_y is null)
+      or
+      (utm_x is not null and utm_y is not null)
+      or
+      (latitude is null and longitude is null)
+      or
+      (latitude is not null and longitude is not null)
+    """),
   )
-  def __repr__(self):
-    return "<ThesBlueEntry (Thes='{}', Entry='{}')>".format(self.thes_id, self.entry)
 
-class ThesBlue(Base):
-  __tablename__ = "thes_blue"
-  thes_id = Column(Integer, primary_key=True)
-  def __repr__(self):
-    return "<ThesBlue (Thes='{}')>".format(self.thes_id)
+class Accessibility(Base):
+  __tablename__ = "tlkpaccessibility"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(100), nullable=False)
 
-class OldBlueEntry(Base):
-  __tablename__ = "old_blue_entry"
-  entry = Column(Integer, primary_key=True)
-  data_id = Column(Integer, nullable=False)
-  def __repr__(self):
-    return "<OldBlueEntry (Entry='{}', Data='{}')".format(self.entry, self.data_id)
+class AddressAccessibility(Base):
+  __tablename__ = "treladdressaccessibility"
+  addressid = Column(Integer, primary_key=True)
+  accessibilityid = Column(Integer, nullable=False)
+
+class CommType(Base):
+  __tablename__ = "tlkpcommtype"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(50), nullable=False, unique=True)
+
+class Comm(Base):
+  __tablename__ = "tblcomm"
+  id = Column(Integer, primary_key=True)
+  commtypeid = Column(Integer, nullable=False)
+  value = Column(String(255), nullable=False)
+  comment = Column(String())
+  __table_args__ = (
+    CheckConstraint("""
+      (commtypeid in (1, 2, 3, 5, 6) and value ~* '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
+      or
+      (commtypeid = 2 and value = '911')
+      or
+      (commtypeid = 4 and value like '_%@%.%')
+      or
+      (commtypeid = 7 and value like '%.__%')
+      or
+      commtypeid > 7
+    """),
+  )
+
+class Contact(Base):
+  __tablename__ = "tblcontact"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(60))
+  title = Column(String(120))
+  org = Column(String(90))
+  comm = Column(String())
+  contacttype = Column(Integer, default=0)
+
+class Service(Base):
+  __tablename__ = "tblservice"
+  id = Column(Integer, primary_key=True)
+  description = Column(String())
+  eligibility = Column(String())
+  info = Column(String())
+  fees = Column(String())
+  hours = Column(String())
+  dates = Column(String())
+  application = Column(String())
+  updated = Column(DateTime)
+  ciocdescription = Column(String())
+  cioceligibility = Column(String())
+  ciocapplication = Column(String())
+
+class Language(Base):
+  __tablename__ = "tlkplanguage"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(), nullable=False)
+
+class ServiceLanguage(Base):
+  __tablename__ = "trelservicelanguage"
+  serviceid = Column(Integer, nullable=False)
+  languageid = Column(Integer, nullable=False)
+  __table_args__ = (
+    PrimaryKeyConstraint("serviceid", "languageid"),
+  )
+
+class Area(Base):
+  __tablename__ = "tlkparea"
+  id = Column(Integer, primary_key=True)
+  name = Column(String(), nullable=False)
+
+class ServiceArea(Base):
+  __tablename__ = "trelservicearea"
+  serviceid = Column(Integer, nullable=False)
+  areaid = Column(Integer, nullable=False)
+  __table_args__ = (
+    PrimaryKeyConstraint("serviceid", "areaid"),
+  )
+
+class OrgName(Base):
+  __tablename__ = "tblorgname"
+  id = Column(Integer, primary_key=True)
+  orgnametypeid = Column(Integer, nullable=False)
+  name = Column(String(100), nullable=False)
+  parentid = Column(Integer)
+  level = Column(Integer)
+  sort = Column(String(100))
+  sort_key = Column(String(100))
+  added = Column(DateTime, default=func.now())
+
+class OrgNameType(Base):
+  __tablename__ = "tlkporgnametype"
+  id = Column(Integer, primary_key=True)
+  type = Column(String(20), nullable=False)
+
+class OrgNames(Base):
+  __tablename__ = "org_names"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  org_name_id = Column(Integer, nullable=False)
+  added = Column(DateTime, default=func.now())
+  __table_args__ = (
+    UniqueConstraint("org_id", "org_name_id"),
+  )
+
+class Org(Base):
+  __tablename__ = "org"
+  id = Column(Integer, primary_key=True)
+  org_name_id = Column(Integer, nullable=False)
+  update_note = Column(String())
+  cic_id = Column(String(7), nullable=False, unique=True)
+  updated = Column(DateTime, default=func.now())
+  service_level = Column(String(60), nullable=False)
+  created = Column(DateTime, nullable=False, default=func.now())
+  isactive = Column(Boolean, nullable=False, default=True)
+  iscomplete = Column(Boolean, nullable=False, default=False)
+  modified = Column(DateTime)
+  established = Column(String(4), CheckConstraint("established ~* '[1-2][0-9][0-9][0-9]'"))
+  bn = Column(String(15), CheckConstraint("bn ~* '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]RR[0-9][0-9][0-9][0-9]'"))
+  deleted = Column(DateTime)
+
+class OrgComm(Base):
+  __tablename__ = "org_comm_rel"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  comm_id  = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+  note = Column(String())
+
+class OrgAddress(Base):
+  __tablename__ = "org_address_rel"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  address_id  = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+  note = Column(String(100))
+  label = Column(String(50))
+
+class OrgContact(Base):
+  __tablename__ = "org_contact_rel"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  contact_id  = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+  note = Column(String())
+
+class OrgRelatedDeletions(Base):
+  __tablename__ = "org_rel_del"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  rel_id = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False)
+  note = Column(String())
+  deleted  = Column(DateTime, nullable=False)
+  table_id = Column(Integer, nullable=False)
+
+class OrgService(Base):
+  __tablename__ = "org_service_rel"
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, nullable=False)
+  service_id = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+  note = Column(String())
+
+class OrgDeletions(Base):
+  __tablename__ = "org_del"
+  id = Column(Integer, primary_key=True)
+  org_name_id = Column(Integer, nullable=False)
+  update_note = Column(String())
+  cic_id = Column(String(7), nullable=False, unique=True)
+  updated = Column(DateTime)
+  service_level = Column(String(60))
+
+class PubOrg(Base):
+  __tablename__ = "pub_org"
+  id = Column(Integer, primary_key=True)
+  pub_id = Column(Integer, nullable=False)
+  org_id = Column(Integer, nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+  org_contact_id = Column(Integer, nullable=False)
+  deleted = Column(DateTime)
+  isActive = Column(Boolean, nullable=False, default=True)
+  xml = Column(String())
+  __table_args__ = (
+    UniqueConstraint("pub_id", "org_id"),
+  )
+
+class Thesaurus(Base):
+  __tablename__ =  "thes_original"
+  id = Column(Integer, primary_key=True)
+  de = Column(String(100), nullable = False, unique=True)
+  use = Column(String(100))
+  woo = Column(String(1))
+  eq = Column(String(100))
+  uf = Column(String())
+  sn = Column(String())
+  bt = Column(String(100))
+  nt = Column(String())
+  rt = Column(String(150))
+  ca = Column(String(50))
+  input = Column(String(50))
+  act = Column(String(10), nullable=False)
+  msg = Column(String(50))
+  cr = Column(String(50))
+  up = Column(String(50))
+  sort = Column(String(100))
+  comments = Column(String())
