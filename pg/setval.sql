@@ -73,7 +73,7 @@ create function set_autoincrement()
         pg_get_serial_sequence('{0}', '{1}'),
         (select max({1}) from {0})
       )""".format(*sequence)
-      plpy.notice(setval)
+      # plpy.notice(setval)
       plan = plpy.prepare(setval)
       result = plpy.execute(plan)
   $$ language plpythonu;
