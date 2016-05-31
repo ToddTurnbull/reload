@@ -5,17 +5,18 @@ drop function if exists name_inserted_updated() cascade;
 create function name_inserted_updated()
   returns trigger
   as $$
+    plpy.notice("I am name_inserted_updated()")
     new_parent = TD["new"]["parentid"]
     if new_parent:
       select_parent = (
-        "select tblorgname.id as name_id, parent.sort_key as parent_key"
+        "select tblorgname.id as name_id, parent.sort_key as parent_key "
         "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
         "where tblorgname.parentid = $1 "
         "and tblorgname.orgnametypeid = 1 "
         "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
       )
       select_plan = plpy.prepare(select_parent, ["int"])
-      select_results = plpy.execute(plan, [new_parent])
+      select_results = plpy.execute(select_plan, [new_parent])
     else:
       select_parent = (
         "select tblorgname.id as name_id, parent.sort_key as parent_key"
@@ -25,7 +26,7 @@ create function name_inserted_updated()
         "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
       )
       select_plan = plpy.prepare(select_parent)
-      select_results = plpy.execute(plan)
+      select_results = plpy.execute(select_plan)
     for i, result in enumerate(select_results):
       name_key = str(i).zfill(4)
       update_query = (
