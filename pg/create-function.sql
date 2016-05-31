@@ -47,7 +47,7 @@ drop function if exists url_escape(param text);
 create function url_escape(param text)
     returns text
     as $$
-    plpy.notice("I am url_escape()")
+      plpy.notice("I am url_escape()")
       import urllib
       return urllib.quote(param)
     $$ language plpythonu;
