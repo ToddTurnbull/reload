@@ -50,6 +50,67 @@ create trigger name_inserted_updated
   execute procedure name_inserted_updated();
 
 
+-- update_name_parent (tblorgname.ParentID)
+drop function if exists name_parent_updated() cascade;
+create function name_parent_updated()
+  returns trigger
+  as $$
+    old = TD["old"]
+    name_id = old["id"]
+    old_level = old["level"]
+    old_parent = old["parentid"]
+    new_parent = TD["new"]["parentid"]
+
+    with plpy.subtransaction():
+      if old_parent:
+        delete_names = (
+          "delete from org_names "
+          "where org_id = any(select org_id from org_names where org_name_id = $1) "
+          "and org_name_id = any(select id from tblorgname where level between 1 and ($2-1) and orgnametypeid = 1)"
+        )
+        plan = plpy.prepare(delete_names, ["int", "int"])
+        results = plpy.execute(plan, [name_id, old_level])
+
+      if new_parent:
+        select_level = (
+          "select level from tblorgname "
+          "where id = $1"
+        )
+        plan = plpy.prepare(select_level, ["int"])
+        results = plpy.execute(plan, [new_parent])
+        result = results[0]
+        levels = range(result["level"])
+
+        current_id = new_parent
+        for level in levels:
+          insert_name = (
+            "insert into org_names(org_id, org_name_id) "
+            "select distinct org_id, $1 "
+            "from org_names "
+            "where org_id = any(select org_id from org_names where org_name_id = $2)"
+          )
+          plan = plpy.prepare(insert_name, ["int", "int"])
+          results = plpy.execute(plan, [current_id, name_id])
+
+          select_parent = (
+            "select parentid "
+            "from tblorgname "
+            "where id = $1"
+          )
+          plan = plpy.prepare(select_parent, ["int"])
+          results = plpy.execute(plan, [current_id])
+          result = results[0]
+          current_id = result["parentid"]
+  $$ language plpythonu;
+
+drop trigger if exists name_parent_updated on tblorgname;
+create trigger name_parent_updated
+  after update of parentid
+  on tblorgname
+  for each row
+  execute procedure name_parent_updated();
+
+
 -- update_child_sort_key (tblorgname)
 -- tblOrgName.Level integer null COMPUTE ((length(sort_key)-1)/5)
 drop function if exists name_sort_key_updated() cascade;
