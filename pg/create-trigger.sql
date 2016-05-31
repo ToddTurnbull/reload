@@ -83,6 +83,7 @@ drop function if exists org_inserted() cascade;
 create function org_inserted()
   returns trigger
   as $$
+    plpy.notice("I am org_inserted()")
     org_id = TD["new"]["id"]
     name_id = TD["new"]["org_name_id"]
 

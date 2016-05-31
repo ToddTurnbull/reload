@@ -4,6 +4,7 @@ drop function if exists htmlStrong(plain text);
 create function htmlStrong(plain text)
   returns text
   as $$
+    plpy.notice("I am htmlStrong()")
     return "<strong>{}</strong>".format(plain)
   $$ language plpythonu;
 
@@ -13,6 +14,7 @@ drop function if exists clnstring(dirty text);
 create function clnstring(dirty text)
   returns text
   as $$
+    plpy.notice("I am clnstring()")
     import re
     lower_case = dirty.lower()
     clean = re.sub('[\W_]+', ' ', lower_case)
@@ -29,6 +31,7 @@ drop function if exists org_name_full(org_id integer);
 create function org_name_full(org_id integer)
   returns text
   as $$
+    plpy.notice("I am org_name_full()")
     select = (
       "select name "
       "from tblorgname join org_names on tblorgname.id = org_names.org_name_id "
@@ -44,6 +47,7 @@ drop function if exists url_escape(param text);
 create function url_escape(param text)
     returns text
     as $$
+    plpy.notice("I am url_escape()")
       import urllib
       return urllib.quote(param)
     $$ language plpythonu;
@@ -77,6 +81,7 @@ drop function if exists addressStr(address_id integer);
 create function addressStr(address_id integer)
   returns text
   as $$
+    plpy.notice("I am addressStr()")
     select = "select * from tbladdress where id = $1"
     plan = plpy.prepare(select, ["integer"])
     results = plpy.execute(plan, [address_id])

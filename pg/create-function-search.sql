@@ -2,6 +2,7 @@ drop function if exists search_org_name(search_string text);
 create function search_org_name(search_string text)
   returns table(name text)
   as $$
+    plpy.notice("I am search_org_name()")
     search = (
       "select name "
       "from tblorgname "

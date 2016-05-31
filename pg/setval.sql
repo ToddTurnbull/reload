@@ -6,6 +6,7 @@ drop function if exists set_autoincrement();
 create function set_autoincrement()
   returns void
   as $$
+    plpy.notice("I am set_autoincrement()")
     serial_keys = [
       ("thes", "id"),
       ("thes_cat", "id"),

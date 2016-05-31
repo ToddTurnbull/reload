@@ -61,6 +61,7 @@ drop function if exists address_updated() cascade;
 create function address_updated()
   returns trigger
   as $$
+    plpy.notice("I am address_updated()")
     address_id = TD["new"]["id"]
     modify = (
       "select org_modified(o.org_id) "
@@ -83,6 +84,7 @@ drop function if exists comm_updated() cascade;
 create function comm_updated()
   returns trigger
   as $$
+    plpy.notice("I am comm_updated()")
     comm_id = TD["new"]["id"]
     modify = (
       "select org_modified(o.org_id) "
@@ -105,6 +107,7 @@ drop function if exists contact_updated() cascade;
 create function contact_updated()
   returns trigger
   as $$
+    plpy.notice("I am contact_updated()")
     contact_id = TD["new"]["id"]
     modify = (
       "select org_modified(o.org_id) "
@@ -655,6 +658,7 @@ drop function if exists service_updated() cascade;
 create function service_updated()
   returns trigger
   as $$
+    plpy.notice("I am service_updated()")
     service_id = TD["new"]["id"]
     mods = [(
       "update tblservice "

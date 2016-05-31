@@ -56,6 +56,7 @@ drop function if exists name_parent_updated() cascade;
 create function name_parent_updated()
   returns trigger
   as $$
+    plpy.notice("I am name_parent_updated()")
     old = TD["old"]
     name_id = old["id"]
     old_level = old["level"]
