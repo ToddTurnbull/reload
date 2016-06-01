@@ -253,7 +253,7 @@ create function org_deleted()
 
 drop trigger if exists org_deleted on org;
 create trigger org_deleted
-  before delete
+  after delete
   on org
   for each row
   execute procedure org_deleted();
