@@ -63,16 +63,14 @@ drop function if exists address_updated() cascade;
 create function address_updated()
   returns trigger
   as $$
-    plpy.notice("I am address_updated()")
-    address_id = TD["new"]["id"]
-    modify = (
-      "select org_modified(o.org_id) "
-      "from org_address_rel as o join tbladdress as a on o.address_id = a.id "
-      "where a.id = $1"
-    )
-    plan = plpy.prepare(modify, ["int"])
-    results = plpy.execute(plan, [address_id])
-  $$ language plpythonu;
+    begin
+      raise info 'I am address_updated()';
+      select org_modified(o.org_id)
+      from org_address_rel as o join tbladdress as a on o.address_id = a.id
+      where a.id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
 
 drop trigger if exists address_updated on tbladdress;
 create trigger address_updated
@@ -86,16 +84,14 @@ drop function if exists comm_updated() cascade;
 create function comm_updated()
   returns trigger
   as $$
-    plpy.notice("I am comm_updated()")
-    comm_id = TD["new"]["id"]
-    modify = (
-      "select org_modified(o.org_id) "
-      "from org_comm_rel as o join tblcomm as c on o.comm_id = c.id "
-      "where c.id = $1"
-    )
-    plan = plpy.prepare(modify, ["int"])
-    results = plpy.execute(plan, [comm_id])
-  $$ language plpythonu;
+    begin
+      raise info 'I am comm_updated()';
+      select org_modified(o.org_id)
+      from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
+      where c.id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
 
 drop trigger if exists comm_updated on tblcomm;
 create trigger comm_updated
@@ -109,16 +105,14 @@ drop function if exists contact_updated() cascade;
 create function contact_updated()
   returns trigger
   as $$
-    plpy.notice("I am contact_updated()")
-    contact_id = TD["new"]["id"]
-    modify = (
-      "select org_modified(o.org_id) "
-      "from org_contact_rel as o join tblcontact as c on o.contact_id = c.id "
-      "where c.id = $1"
-    )
-    plan = plpy.prepare(modify, ["int"])
-    results = plpy.execute(plan, [contact_id])
-  $$ language plpythonu;
+    begin
+      raise info 'I am contact_updated()';
+      select org_modified(o.org_id)
+      from org_contact_rel as o join tblcontact as c on o.contact_id = c.id
+      where c.id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
 
 drop trigger if exists contact_updated on tblcontact;
 create trigger contact_updated
