@@ -23,7 +23,7 @@ create function org_address_deleted()
   as $$
     begin
       raise info 'I am org_address_deleted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_address_rel
       where id = OLD.id;
       return null;
@@ -45,7 +45,7 @@ create function org_address_inserted()
   as $$
     begin
       raise info 'I am org_address_inserted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_address_rel
       where id = NEW.id;
       return null;
@@ -54,7 +54,7 @@ create function org_address_inserted()
 
 drop trigger if exists org_address_inserted on org_address_rel;
 create trigger org_address_inserted
-  after delete
+  after insert
   on org_address_rel
   for each row
   execute procedure org_address_inserted();
@@ -67,7 +67,7 @@ create function address_updated()
   as $$
     begin
       raise info 'I am address_updated()';
-      select org_modified(o.org_id)
+      perform org_modified(o.org_id)
       from org_address_rel as o join tbladdress as a on o.address_id = a.id
       where a.id = NEW.id;
       return null;
@@ -88,7 +88,7 @@ create function comm_updated()
   as $$
     begin
       raise info 'I am comm_updated()';
-      select org_modified(o.org_id)
+      perform org_modified(o.org_id)
       from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
       where c.id = NEW.id;
       return null;
@@ -109,7 +109,7 @@ create function contact_updated()
   as $$
     begin
       raise info 'I am contact_updated()';
-      select org_modified(o.org_id)
+      perform org_modified(o.org_id)
       from org_contact_rel as o join tblcontact as c on o.contact_id = c.id
       where c.id = NEW.id;
       return null;
@@ -130,7 +130,7 @@ create function ic_agency_deleted()
   as $$
     begin
       raise info 'I am ic_agency_deleted()';
-      select org_modified(OLD.orgid);
+      perform org_modified(OLD.orgid);
       update org
         set modified = now()
         where id = any(
@@ -164,7 +164,7 @@ create function ic_agency_inserted()
   as $$
     begin
       raise info 'I am ic_agency_inserted()';
-      select org_modified(NEW.orgid);
+      perform org_modified(NEW.orgid);
       update org
         set modified = now()
         where id = any(
@@ -197,8 +197,8 @@ create function ic_agency_updated()
   as $$
     begin
       raise info 'I am ic_agency_updated()';
-      select org_modified(OLD.orgid);
-      select org_modified(NEW.orgid);
+      perform org_modified(OLD.orgid);
+      perform org_modified(NEW.orgid);
       update org
        set modified = now()
        where id = any(
@@ -231,7 +231,7 @@ create function ic_sites_deleted()
   as $$
     begin
       raise info 'I am ic_sites_deleted()';
-      select org_modified(OLD.siteid);
+      perform org_modified(OLD.siteid);
       update org
         set modified = now()
         where id = any(
@@ -265,7 +265,7 @@ create function ic_sites_inserted()
   as $$
     begin
       raise info 'I am ic_sites_inserted()';
-      select org_modified(NEW.siteid);
+      perform org_modified(NEW.siteid);
       update org
         set modified = now()
         where id = any(
@@ -299,8 +299,8 @@ create function ic_sites_updated()
   as $$
     begin
       raise info 'I am ic_sites_updated()';
-      select org_modified(OLD.siteid);
-      select org_modified(NEW.siteid);
+      perform org_modified(OLD.siteid);
+      perform org_modified(NEW.siteid);
       update org
       set modified = now()
       where id = any(
@@ -334,7 +334,7 @@ create function ic_services_deleted()
   as $$
     begin
       raise info 'I am ic_services_deleted()';
-      select org_modified(OLD.serviceid);
+      perform org_modified(OLD.serviceid);
       update org
         set modified = now()
         where id = any(
@@ -360,7 +360,7 @@ create function ic_services_inserted()
   as $$
     begin
       raise info 'I am ic_services_inserted()';
-      select org_modified(NEW.serviceid);
+      perform org_modified(NEW.serviceid);
       update org
         set modified = now()
         where id = any(
@@ -387,8 +387,8 @@ create function ic_services_updated()
   as $$
     begin
       raise info 'I am ic_services_updated()';
-      select org_modified(OLD.serviceid);
-      select org_modified(NEW.serviceid);
+      perform org_modified(OLD.serviceid);
+      perform org_modified(NEW.serviceid);
       update org
       set modified = now()
       where id = any(
@@ -415,7 +415,7 @@ create function org_comm_deleted()
   as $$
     begin
       raise info 'I am org_comm_deleted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_comm_rel
       where id = OLD.id;
       return null;
@@ -437,7 +437,7 @@ create function org_comm_inserted()
   as $$
     begin
       raise info 'I am org_comm_inserted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_comm_rel
       where id = NEW.id;
       return null;
@@ -459,7 +459,7 @@ create function org_contact_deleted()
   as $$
     begin
       raise info 'I am org_contact_deleted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_contact_rel
       where id = OLD.id;
       return null;
@@ -481,7 +481,7 @@ create function org_contact_inserted()
   as $$
     begin
       raise info 'I am org_contact_inserted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_contact_rel
       where id = NEW.id;
       return null;
@@ -526,7 +526,7 @@ create function org_names_inserted()
     begin
       raise info 'I am org_names_inserted()';
       if NEW.org_name_id = any(select id from tblorgname where  orgnametypeid != 1) then
-        select org_modified(NEW.org_id);
+        perform org_modified(NEW.org_id);
       end if;
       return null;
     end;
@@ -547,7 +547,7 @@ create function org_tax_inserted()
   as $$
     begin
       raise info 'I am org_tax_inserted()';
-      select org_modified(orgid)
+      perform org_modified(orgid)
       from orgtaxlink
       where id = NEW.id;
       return null;
@@ -569,7 +569,7 @@ create function org_tax_deleted()
   as $$
     begin
       raise info 'I am org_tax_deleted()';
-      select org_modified(orgid)
+      perform org_modified(orgid)
       from orgtaxlink
       where id = OLD.id;
       return null;
@@ -591,7 +591,7 @@ create function org_thes_deleted()
   as $$
     begin
       raise info 'I am org_thes_deleted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_thes
       where id = OLD.id;
       return null;
@@ -613,7 +613,7 @@ create function org_thes_inserted()
   as $$
     begin
       raise info 'I am org_thes_inserted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from org_thes
       where id = NEW.id;
       return null;
@@ -635,7 +635,7 @@ create function pub_org_inserted()
   as $$
     begin
       raise info 'I am pub_org_inserted()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from pub_org
       where id = NEW.id;
       return null;
@@ -657,7 +657,7 @@ create function pub_org_updated()
   as $$
     begin
       raise info 'I am pub_org_updated()';
-      select org_modified(org_id)
+      perform org_modified(org_id)
       from pub_org
       where id = NEW.id;
       return null;
@@ -682,7 +682,7 @@ create function service_updated()
       update tblservice
         set updated = now()
         where id = NEW.id;
-      select org_modified(o.org_id)
+      perform org_modified(o.org_id)
         from org_service_rel as o join tblservice as s on o.service_id = s.id
         where s.id = NEW.id;
       return null;
