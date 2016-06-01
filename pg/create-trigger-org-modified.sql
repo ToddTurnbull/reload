@@ -16,50 +16,6 @@ create function org_modified(org_id integer)
   $$ language plpgsql;
 
 
--- orgModAddressDel (org_address_rel)
-drop function if exists org_address_deleted() cascade;
-create function org_address_deleted()
-  returns trigger
-  as $$
-    begin
-      raise info 'I am org_address_deleted()';
-      perform org_modified(org_id)
-      from org_address_rel
-      where id = OLD.id;
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists org_address_deleted on org_address_rel;
-create trigger org_address_deleted
-  after delete
-  on org_address_rel
-  for each row
-  execute procedure org_address_deleted();
-
-
--- orgModAddressIns (org_address_rel)
-drop function if exists org_address_inserted() cascade;
-create function org_address_inserted()
-  returns trigger
-  as $$
-    begin
-      raise info 'I am org_address_inserted()';
-      perform org_modified(org_id)
-      from org_address_rel
-      where id = NEW.id;
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists org_address_inserted on org_address_rel;
-create trigger org_address_inserted
-  after insert
-  on org_address_rel
-  for each row
-  execute procedure org_address_inserted();
-
-
 -- updateAddressOrgMod (tbladdress)
 drop function if exists address_updated() cascade;
 create function address_updated()
@@ -406,6 +362,50 @@ create trigger ic_services_updated
   on ic_site_services
   for each row
   execute procedure ic_services_updated();
+
+
+-- orgModAddressDel (org_address_rel)
+drop function if exists org_address_deleted() cascade;
+create function org_address_deleted()
+  returns trigger
+  as $$
+    begin
+      raise info 'I am org_address_deleted()';
+      perform org_modified(org_id)
+      from org_address_rel
+      where id = OLD.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_address_deleted on org_address_rel;
+create trigger org_address_deleted
+  after delete
+  on org_address_rel
+  for each row
+  execute procedure org_address_deleted();
+
+
+-- orgModAddressIns (org_address_rel)
+drop function if exists org_address_inserted() cascade;
+create function org_address_inserted()
+  returns trigger
+  as $$
+    begin
+      raise info 'I am org_address_inserted()';
+      perform org_modified(org_id)
+      from org_address_rel
+      where id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
+
+drop trigger if exists org_address_inserted on org_address_rel;
+create trigger org_address_inserted
+  after insert
+  on org_address_rel
+  for each row
+  execute procedure org_address_inserted();
 
 
 -- orgModCommDel (org_comm_rel)
