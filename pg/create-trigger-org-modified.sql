@@ -5,13 +5,13 @@ create type org_modified as (org_id integer, modified timestamp);
 -- dropping org_modified type cascades to org_modified() function
 drop function if exists org_modified(org_id integer);
 create function org_modified(org_id integer)
-  returns org_modified
+  returns void
   as $$
     begin
+      raise info 'I am org_modified()';
       update org
       set modified = now()
-      where id = $1
-      returning id, modified;
+      where id = $1;
     end;
   $$ language plpgsql;
 
