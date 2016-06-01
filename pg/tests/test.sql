@@ -12,8 +12,12 @@ create domain tempdb.test_results as text;
 \i trigger-org-name-update.sql
 
 -- name_parent_updated
+\i trigger-name-parent-updated.sql
 
 -- org_inserted
+\i trigger-org-inserted.sql
+
+-- org_thes_inserted
 
 -- org_thes_deleted
 
