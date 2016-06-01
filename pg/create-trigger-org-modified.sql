@@ -22,6 +22,7 @@ create function org_address_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_address_deleted()';
       select org_modified(org_id)
       from org_address_rel
       where id = OLD.id;
@@ -43,6 +44,7 @@ create function org_address_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_address_inserted()';
       select org_modified(org_id)
       from org_address_rel
       where id = NEW.id;
@@ -127,6 +129,7 @@ create function ic_agency_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_agency_deleted()';
       select org_modified(OLD.orgid);
       update org
         set modified = now()
@@ -160,6 +163,7 @@ create function ic_agency_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_agency_inserted()';
       select org_modified(NEW.orgid);
       update org
         set modified = now()
@@ -192,6 +196,7 @@ create function ic_agency_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_agency_updated()';
       select org_modified(OLD.orgid);
       select org_modified(NEW.orgid);
       update org
@@ -225,6 +230,7 @@ create function ic_sites_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_sites_deleted()';
       select org_modified(OLD.siteid);
       update org
         set modified = now()
@@ -258,6 +264,7 @@ create function ic_sites_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_sites_inserted()';
       select org_modified(NEW.siteid);
       update org
         set modified = now()
@@ -291,6 +298,7 @@ create function ic_sites_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_sites_updated()';
       select org_modified(OLD.siteid);
       select org_modified(NEW.siteid);
       update org
@@ -325,6 +333,7 @@ create function ic_services_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_services_deleted()';
       select org_modified(OLD.serviceid);
       update org
         set modified = now()
@@ -350,6 +359,7 @@ create function ic_services_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_services_inserted()';
       select org_modified(NEW.serviceid);
       update org
         set modified = now()
@@ -376,6 +386,7 @@ create function ic_services_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am ic_services_updated()';
       select org_modified(OLD.serviceid);
       select org_modified(NEW.serviceid);
       update org
@@ -403,6 +414,7 @@ create function org_comm_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_comm_deleted()';
       select org_modified(org_id)
       from org_comm_rel
       where id = OLD.id;
@@ -424,6 +436,7 @@ create function org_comm_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_comm_inserted()';
       select org_modified(org_id)
       from org_comm_rel
       where id = NEW.id;
@@ -445,6 +458,7 @@ create function org_contact_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_contact_deleted()';
       select org_modified(org_id)
       from org_contact_rel
       where id = OLD.id;
@@ -466,6 +480,7 @@ create function org_contact_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_contact_inserted()';
       select org_modified(org_id)
       from org_contact_rel
       where id = NEW.id;
@@ -487,6 +502,7 @@ create function org_names_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_names_deleted()';
       if OLD.org_name_id = any(select id from tblorgname where  orgnametypeid != 1) then
         perform org_modified(OLD.org_id);
       end if;
@@ -508,6 +524,7 @@ create function org_names_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_names_inserted()';
       if NEW.org_name_id = any(select id from tblorgname where  orgnametypeid != 1) then
         select org_modified(NEW.org_id);
       end if;
@@ -529,6 +546,7 @@ create function org_tax_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_tax_inserted()';
       select org_modified(orgid)
       from orgtaxlink
       where id = NEW.id;
@@ -550,6 +568,7 @@ create function org_tax_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_tax_deleted()';
       select org_modified(orgid)
       from orgtaxlink
       where id = OLD.id;
@@ -571,6 +590,7 @@ create function org_thes_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_thes_deleted()';
       select org_modified(org_id)
       from org_thes
       where id = OLD.id;
@@ -592,6 +612,7 @@ create function org_thes_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_thes_inserted()';
       select org_modified(org_id)
       from org_thes
       where id = NEW.id;
@@ -613,6 +634,7 @@ create function pub_org_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am pub_org_inserted()';
       select org_modified(org_id)
       from pub_org
       where id = NEW.id;
@@ -634,6 +656,7 @@ create function pub_org_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am pub_org_updated()';
       select org_modified(org_id)
       from pub_org
       where id = NEW.id;
@@ -654,22 +677,17 @@ drop function if exists service_updated() cascade;
 create function service_updated()
   returns trigger
   as $$
-    plpy.notice("I am service_updated()")
-    service_id = TD["new"]["id"]
-    mods = [(
-      "update tblservice "
-      "set updated = now() "
-      "where id = $1"
-    ),
-    (
-      "select org_modified(o.org_id) "
-      "from org_service_rel as o join tblservice as s on o.service_id = s.id "
-      "where s.id = $1"
-    )]
-    for mod in mods:
-      plan = plpy.prepare(mod, ["int"])
-      results = plpy.execute(plan, [service_id])
-  $$ language plpythonu;
+    begin
+      raise info 'I am service_updated()';
+      update tblservice
+        set updated = now()
+        where id = NEW.id;
+      select org_modified(o.org_id)
+        from org_service_rel as o join tblservice as s on o.service_id = s.id
+        where s.id = NEW.id;
+      return null;
+    end;
+  $$ language plpgsql;
 
 drop trigger if exists service_updated on tblservice;
 create trigger service_updated
