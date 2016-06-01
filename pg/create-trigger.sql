@@ -7,6 +7,7 @@ create function active_or_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am active_or_deleted()';
       update org
       set deleted = (case isactive when true then null else now() end)
       where org.id = NEW.id;
@@ -131,6 +132,7 @@ create function org_thes_inserted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_thes_inserted()';
       insert into org_thes(org_id, thes_id, official_id)
       select NEW.org_id, rel_id, NEW.thes_id
       from thes_rel
@@ -155,6 +157,7 @@ create function org_thes_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_thes_deleted()';
       delete from org_thes
       where official_id = OLD.official_id
       and org_id = OLD.org_id;
@@ -177,6 +180,7 @@ create function org_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am org_updated()';
       insert into orgupdated(orgid, updated)
       values(NEW.id, NEW.updated);
       return null;
@@ -197,6 +201,7 @@ create function org_is_complete_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am org_is_complete_updated()';
       update org set deleted = now() where id = NEW.id;
       return null;
     end;
@@ -217,6 +222,7 @@ create function tax_groups_updated()
   returns trigger
   as $$
     begin
+      raise info 'I am tax_groups_updated()';
       update taxgroups
       set modified = now()
       where id = NEW.id;
@@ -238,6 +244,7 @@ create function org_deleted()
   returns trigger
   as $$
     begin
+      raise info 'I am org_deleted()';
       insert into org_del(id, org_name_id, update_note, cic_id, updated, service_level)
       values(OLD.id, OLD.org_name_id, OLD.update_note, OLD.cic_id, now(), OLD.service_level);
       return null;
