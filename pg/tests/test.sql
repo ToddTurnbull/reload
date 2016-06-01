@@ -24,6 +24,7 @@ create domain tempdb.test_results as text;
 \i trigger-org-thes-deleted.sql
 
 -- org_updated
+\i trigger-org-updated.sql
 
 -- org_is_complete_updated
 \i trigger-iscomplete.sql
