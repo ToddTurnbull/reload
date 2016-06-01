@@ -18,6 +18,7 @@ create domain tempdb.test_results as text;
 \i trigger-org-inserted.sql
 
 -- org_thes_inserted
+\i trigger-org-thes-inserted.sql
 
 -- org_thes_deleted
 
