@@ -7,11 +7,13 @@ drop function if exists org_modified(org_id integer);
 create function org_modified(org_id integer)
   returns org_modified
   as $$
-    update org
-    set modified = now()
-    where id = $1
-    returning id, modified;
-  $$ language sql;
+    begin
+      update org
+      set modified = now()
+      where id = $1
+      returning id, modified;
+    end;
+  $$ language plpgsql;
 
 
 -- orgModAddressDel (org_address_rel)

@@ -45,23 +45,23 @@ create function org_name_full(org_id integer)
 
 drop function if exists url_escape(param text);
 create function url_escape(param text)
-    returns text
-    as $$
-      plpy.notice("I am url_escape()")
-      import urllib
-      return urllib.quote(param)
-    $$ language plpythonu;
+  returns text
+  as $$
+    plpy.notice("I am url_escape()")
+    import urllib
+    return urllib.quote(param)
+  $$ language plpythonu;
 
 drop function if exists new_cic_id();
 create function new_cic_id()
-    returns text
-    as $$
-      plpy.notice("I am new_cic_id()")
-      max_results = plpy.execute("select max(cic_id) as max_id from org")
-      max_str = max_results[0]["max_id"][3:]
-      max_int = int(max_str)
-      return "WRN{}".format(str(max_int + 1))
-    $$ language plpythonu;
+  returns text
+  as $$
+    plpy.notice("I am new_cic_id()")
+    max_results = plpy.execute("select max(cic_id) as max_id from org")
+    max_str = max_results[0]["max_id"][3:]
+    max_int = int(max_str)
+    return "WRN{}".format(str(max_int + 1))
+  $$ language plpythonu;
 
 
 -- skipping edb_thes
