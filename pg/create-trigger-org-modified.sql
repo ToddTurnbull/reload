@@ -10,8 +10,8 @@ create function org_modified(org_id integer)
     begin
       raise info 'I am org_modified()';
       update org
-      set modified = now()
-      where id = $1;
+        set modified = now()
+        where id = $1;
     end;
   $$ language plpgsql;
 
@@ -24,8 +24,8 @@ create function address_updated()
     begin
       raise info 'I am address_updated()';
       perform org_modified(o.org_id)
-      from org_address_rel as o join tbladdress as a on o.address_id = a.id
-      where a.id = NEW.id;
+        from org_address_rel as o join tbladdress as a on o.address_id = a.id
+        where a.id = NEW.id;
       return null;
     end;
   $$ language plpgsql;
@@ -45,8 +45,8 @@ create function comm_updated()
     begin
       raise info 'I am comm_updated()';
       perform org_modified(o.org_id)
-      from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
-      where c.id = NEW.id;
+        from org_comm_rel as o join tblcomm as c on o.comm_id = c.id
+        where c.id = NEW.id;
       return null;
     end;
   $$ language plpgsql;
@@ -66,8 +66,8 @@ create function contact_updated()
     begin
       raise info 'I am contact_updated()';
       perform org_modified(o.org_id)
-      from org_contact_rel as o join tblcontact as c on o.contact_id = c.id
-      where c.id = NEW.id;
+        from org_contact_rel as o join tblcontact as c on o.contact_id = c.id
+        where c.id = NEW.id;
       return null;
     end;
   $$ language plpgsql;
@@ -87,20 +87,6 @@ create function ic_agency_deleted()
     begin
       raise info 'I am ic_agency_deleted()';
       perform org_modified(OLD.orgid);
-      update org
-        set modified = now()
-        where id = any(
-          select siteid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where orgid in (OLD.orgid)
-        );
-      update org
-        set modified = now()
-        where id = any(
-          select serviceid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where orgid in (OLD.orgid)
-        );
       return null;
     end;
   $$ language plpgsql;
@@ -121,19 +107,6 @@ create function ic_agency_inserted()
     begin
       raise info 'I am ic_agency_inserted()';
       perform org_modified(NEW.orgid);
-      update org
-        set modified = now()
-        where id = any(
-          select siteid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where orgid in (NEW.orgid));
-      update org
-        set modified = now()
-        where id = any(
-          select serviceid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where orgid in (NEW.orgid)
-        );
       return null;
     end;
   $$ language plpgsql;
@@ -158,15 +131,19 @@ create function ic_agency_updated()
       update org
        set modified = now()
        where id = any(
-        select siteid from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+        select siteid
+        from ic_agencies
+          join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
         where orgid in (OLD.orgid, NEW.orgid)
       );
       update org
         set modified = now() 
         where id = any(
           select serviceid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where orgid in (OLD.orgid, NEW.orgid)
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where ic_agencies.orgid in (OLD.orgid, NEW.orgid)
         );
       return null;
     end;
@@ -192,14 +169,8 @@ create function ic_sites_deleted()
         set modified = now()
         where id = any(
           select orgid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where siteid in (OLD.siteid)
-        );
-      update org
-        set modified = now()
-        where id = any(
-          select serviceid
-          from ic_site_services
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
           where siteid in (OLD.siteid)
         );
       return null;
@@ -226,15 +197,9 @@ create function ic_sites_inserted()
         set modified = now()
         where id = any(
           select orgid
-          from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-          where siteid in (NEW.siteid)
-        );
-      update org 
-        set modified = now()
-        where id = any(
-          select serviceid
-          from ic_site_services
-          where siteid in (NEW.siteid)
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+          where ic_agency_sites.id = NEW.id
         );
       return null;
     end;
@@ -258,19 +223,20 @@ create function ic_sites_updated()
       perform org_modified(OLD.siteid);
       perform org_modified(NEW.siteid);
       update org
-      set modified = now()
-      where id = any(
-        select orgid
-        from ic_agencies join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
-        where siteid in (OLD.siteid, NEW.siteid)
-      );
+        set modified = now()
+        where id = any(
+          select orgid
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+          where siteid in (OLD.siteid, NEW.siteid)
+        );
       update org
-      set modified = now()
-      where id = any(
-        select serviceid
-        from ic_site_services
-        where siteid in (OLD.siteid, NEW.siteid)
-      );
+        set modified = now()
+        where id = any(
+          select serviceid
+          from ic_site_services
+          where siteid in (OLD.id, NEW.id)
+        );
       return null;
     end;
   $$ language plpgsql;
@@ -294,9 +260,20 @@ create function ic_services_deleted()
       update org
         set modified = now()
         where id = any(
+          select orgid
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where ic_site_services.id = OLD.id
+        );
+      update org
+        set modified = now()
+        where id = any(
           select ic_agency_sites.siteid
-          from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
-          where serviceid in (OLD.serviceid));
+          from ic_agency_sites
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where serviceid in (OLD.serviceid)
+        );
       return null;
     end;
   $$ language plpgsql;
@@ -320,8 +297,18 @@ create function ic_services_inserted()
       update org
         set modified = now()
         where id = any(
+          select orgid
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where ic_site_services.id = NEW.id
+        );
+      update org
+        set modified = now()
+        where id = any(
           select ic_agency_sites.siteid
-          from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          from ic_agency_sites
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
           where serviceid in (NEW.serviceid)
         );
       return null;
@@ -346,12 +333,22 @@ create function ic_services_updated()
       perform org_modified(OLD.serviceid);
       perform org_modified(NEW.serviceid);
       update org
-      set modified = now()
-      where id = any(
-        select ic_agency_sites.siteid
-        from ic_agency_sites join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
-        where serviceid in(OLD.serviceid, NEW.serviceid)
-      );
+        set modified = now()
+        where id = any(
+          select orgid
+          from ic_agencies
+            join ic_agency_sites on ic_agencies.id = ic_agency_sites.agencyid
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where ic_site_services.id = NEW.id
+        );
+      update org
+        set modified = now()
+        where id = any(
+          select ic_agency_sites.siteid
+          from ic_agency_sites
+            join ic_site_services on ic_agency_sites.id = ic_site_services.siteid
+          where serviceid in (NEW.id)
+        );
       return null;
     end;
   $$ language plpgsql;
