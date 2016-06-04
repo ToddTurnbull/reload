@@ -332,3 +332,27 @@ select pub_id, added from pub_org where org_id = 2003 and added > '2013-01-01';
 
 \qecho 'Testing pub_org_updated()'
 
+select id, pub_id, isactive, org_contact_id, added from pub_org where org_id = 2000;
+
+begin;
+  update pub_org set isactive = false where pub_id = 119 and org_id = 2000;
+  select id, pub_id, isactive, org_contact_id, added from pub_org where org_id = 2000;
+  select id, modified from org where id = 2000;
+rollback;
+
+begin;
+  update pub_org set org_contact_id = null where pub_id = 119 and org_id = 2000;
+  select id, pub_id, isactive, org_contact_id, added from pub_org where org_id = 2000;
+  select id, modified from org where id = 2000;
+rollback;
+
+\qecho 'Testing service_updated()'
+
+begin;
+  update tblservice set dates = null where id = 1688;
+  select modified from org where id = 2000;
+  select updated from tblservice where id = 1688;
+rollback;
+
+select modified from org where id = 2000;
+select updated from tblservice where id = 1688;
