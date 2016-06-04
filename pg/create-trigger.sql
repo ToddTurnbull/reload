@@ -135,9 +135,10 @@ create function org_thes_inserted()
       raise info 'I am org_thes_inserted()';
       insert into org_thes(org_id, thes_id, official_id)
       select NEW.org_id, rel_id, NEW.thes_id
-      from thes_rel
-      where rel_type = 'uf'
-      and thes_id = NEW.thes_id;
+        from thes_rel
+        where rel_type = 'uf'
+        and thes_id = NEW.thes_id;
+      perform org_modified(NEW.org_id);
       return null;
     end;
   $$ language plpgsql;
@@ -159,8 +160,9 @@ create function org_thes_deleted()
     begin
       raise info 'I am org_thes_deleted()';
       delete from org_thes
-      where official_id = OLD.official_id
-      and org_id = OLD.org_id;
+        where official_id = OLD.official_id
+        and org_id = OLD.org_id;
+      perform org_modified(OLD.org_id);
       return null;
     end;
   $$ language plpgsql;
