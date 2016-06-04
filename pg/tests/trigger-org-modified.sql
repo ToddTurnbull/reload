@@ -317,3 +317,18 @@ rollback;
 select * from org_thes where org_id = 2003;
 select id, modified from org where id = 2003;
 
+\qecho 'Testing pub_org_inserted()'
+
+select pub_id, added from pub_org where org_id = 2003 and added > '2013-01-01';
+
+begin;
+  insert into pub_org(org_id, pub_id) values(2003, 3);
+  select pub_id, added from pub_org where org_id = 2003 and added > '2013-01-01';
+  select id, modified from org where id = 2003;
+rollback;
+
+select id, modified from org where id = 2003;
+select pub_id, added from pub_org where org_id = 2003 and added > '2013-01-01';
+
+\qecho 'Testing pub_org_updated()'
+
