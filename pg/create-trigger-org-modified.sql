@@ -566,9 +566,7 @@ create function org_tax_deleted()
   as $$
     begin
       raise info 'I am org_tax_deleted()';
-      perform org_modified(orgid)
-      from orgtaxlink
-      where id = OLD.id;
+      perform org_modified(OLD.orgid);
       return null;
     end;
   $$ language plpgsql;
@@ -580,42 +578,6 @@ create trigger org_tax_deleted
   for each row
   execute procedure org_tax_deleted();
 
-
--- orgModThesDelete (org_thes)
-drop function if exists org_thes_deleted() cascade;
-create function org_thes_deleted()
-  returns trigger
-  as $$
-    begin
-      raise info 'I am org_thes_deleted()';
-      perform org_modified(org_id)
-      from org_thes
-      where id = OLD.id;
-      return null;
-    end;
-  $$ language plpgsql;
-
-drop trigger if exists org_thes_deleted on org_thes;
-create trigger org_thes_deleted
-  after delete
-  on org_thes
-  for each row
-  execute procedure org_thes_deleted();
-
-
--- orgModThesInsert (org_thes)
-drop function if exists org_thes_inserted() cascade;
-create function org_thes_inserted()
-  returns trigger
-  as $$
-    begin
-      raise info 'I am org_thes_inserted()';
-      perform org_modified(org_id)
-      from org_thes
-      where id = NEW.id;
-      return null;
-    end;
-  $$ language plpgsql;
 
 drop trigger if exists org_thes_inserted on org_thes;
 create trigger org_thes_inserted
