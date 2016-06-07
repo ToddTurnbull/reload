@@ -13,33 +13,34 @@ create function name_inserted_updated()
         "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
         "where tblorgname.parentid = $1 "
         "and tblorgname.orgnametypeid = 1 "
-        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
+        "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
       )
       select_plan = plpy.prepare(select_parent, ["int"])
       select_results = plpy.execute(select_plan, [new_parent])
     else:
       select_parent = (
-        "select tblorgname.id as name_id, parent.sort_key as parent_key"
-        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
+        "select tblorgname.id as name_id "
+        "from tblorgname "
         "where tblorgname.parentid is null "
         "and tblorgname.orgnametypeid = 1 "
-        "order by coalesce(tblorgname.sort, tblorgname.name) asc;"
+        "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
       )
       select_plan = plpy.prepare(select_parent)
       select_results = plpy.execute(select_plan)
+      plpy.notice(len(select_results))
     for i, result in enumerate(select_results):
       name_key = str(i).zfill(4)
+      plpy.notice(name_key)
       update_query = (
         "update tblorgname "
-        "set sort_key = concat($1, '.', $2) "
-        "where id = $3" 
+        "set sort_key = $1 "
+        "where id = $2" 
       )
       update_args = [
-        result["parent_key"],
         name_key,
         result["name_id"]
       ]
-      update_plan = plpy.prepare(update_query, ["text", "text", "int"])
+      update_plan = plpy.prepare(update_query, ["text", "int"])
       update_results = plpy.execute(update_plan, update_args)
   $$ language plpythonu;
 
@@ -124,7 +125,10 @@ create function name_sort_key_updated()
         set level = ((length(NEW.sort_key)-1)/5)
         where id = NEW.id;
       update tblorgname
-        set sort_key = concat(NEW.sort_key, substring(tblorgname.sort_key, length(tblorgname.sort_key)-4))
+        set sort_key = concat(
+          NEW.sort_key,
+          substring(tblorgname.sort_key, length(tblorgname.sort_key)-4)
+        )
         where parentid = NEW.id;
       return null;
     end;
