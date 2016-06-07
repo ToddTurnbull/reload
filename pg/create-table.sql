@@ -438,7 +438,7 @@ create table thes_original (
 create table thes_rel (
   id serial primary key,
   thes_id integer not null,
-  rel_id integer null,
+  rel_id integer not null,
   rel_type varchar(2) not null,
   ca integer null,
   sort_key varchar(100) null,
