@@ -24,3 +24,5 @@ create domain tempdb.multiocc as text;
 
 \i setval.sql
 select set_autoincrement();
+
+select org_name_sort_keys()
