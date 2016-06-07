@@ -1,6 +1,35 @@
 -- make_org_name_sort_key()
 -- update_name_sort_parent (tblorgname)
 -- create_org_name_sort_key (tblorgname)
+
+drop function if exists org_name_sort_keys() cascade;
+create function org_name_sort_keys()
+  returns void
+  as $$
+    top_level_names = (
+      "select tblorgname.id as name_id "
+      "from tblorgname "
+      "where tblorgname.parentid is null "
+      "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
+    )
+    plan = plpy.prepare(top_level_names)
+    results = plpy.execute(plan)
+
+    for i, result in enumerate(results):
+      sort_key = ".{}".format(str(i).zfill(4))
+      update_query = (
+        "update tblorgname "
+        "set sort_key = $1 "
+        "where id = $2" 
+      )
+      update_args = [
+        sort_key,
+        result["name_id"]
+      ]
+      update_plan = plpy.prepare(update_query, ["text", "int"])
+      update_results = plpy.execute(update_plan, update_args)
+  $$ language plpythonu;
+
 drop function if exists name_inserted_updated() cascade;
 create function name_inserted_updated()
   returns trigger
@@ -27,17 +56,20 @@ create function name_inserted_updated()
       )
       select_plan = plpy.prepare(select_parent)
       select_results = plpy.execute(select_plan)
-      plpy.notice(len(select_results))
+    plpy.notice("Updating {} records".format(len(select_results)))
     for i, result in enumerate(select_results):
       name_key = str(i).zfill(4)
-      plpy.notice(name_key)
+      if "parent_key" in result:
+        sort_key = "{}.{}".format(result["parent_key"], name_key)
+      else:
+        sort_key = ".{}".format(name_key)
       update_query = (
         "update tblorgname "
         "set sort_key = $1 "
         "where id = $2" 
       )
       update_args = [
-        name_key,
+        sort_key,
         result["name_id"]
       ]
       update_plan = plpy.prepare(update_query, ["text", "int"])
@@ -121,13 +153,15 @@ create function name_sort_key_updated()
   returns trigger
   as $$
     begin
+      -- raise info 'I am name_sort_key_updated()';
       update tblorgname
-        set level = ((length(NEW.sort_key)-1)/5)
+        set level = ((length(NEW.sort_key))/5)
         where id = NEW.id;
+      -- update children
       update tblorgname
         set sort_key = concat(
           NEW.sort_key,
-          substring(tblorgname.sort_key, length(tblorgname.sort_key)-4)
+          substring(sort_key, length(sort_key)-4)
         )
         where parentid = NEW.id;
       return null;
@@ -140,5 +174,4 @@ create trigger name_sort_key_updated
   on tblorgname
   for each row
   execute procedure name_sort_key_updated();
-
 
