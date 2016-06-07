@@ -17,11 +17,8 @@ create domain tempdb.test_results as text;
 -- org_inserted
 \i trigger-org-inserted.sql
 
--- org_thes_inserted
-\i trigger-org-thes-inserted.sql
-
--- org_thes_deleted
-\i trigger-org-thes-deleted.sql
+-- org_thes_inserted/deleted
+\i trigger-org-thes.sql
 
 -- org_updated
 \i trigger-org-updated.sql
@@ -32,4 +29,9 @@ create domain tempdb.test_results as text;
 -- tax_groups_updated
 
 -- org_deleted
+\i trigger-org-deleted.sql
 
+\i trigger-org-modified.sql
+\i trigger-org-rel-del.sql
+\i trigger-org-inserted.sql
+\i trigger-tblorgname.sql
