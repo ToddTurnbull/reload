@@ -49,11 +49,9 @@
 \copy taxLink from '../unload/356.dat' csv quote '''' encoding 'WIN1252';
 \copy orgTaxLink from '../unload/357.dat' csv quote '''' encoding 'WIN1252';
 \copy taxLinkNote from '../unload/358.dat' csv quote '''' encoding 'WIN1252';
-\copy taxTemp from '../unload/360.dat' csv quote '''' encoding 'WIN1252';
 \copy cioc from '../unload/361.dat' csv quote '''' encoding 'WIN1252';
 \copy ciocExport from '../unload/362.dat' csv quote '''' encoding 'WIN1252';
 \copy taxRelTemp from '../unload/364.dat' csv quote '''' encoding 'WIN1252';
-\copy taxTempOldCode from '../unload/365.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxNames from '../unload/374.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxAlso from '../unload/375.dat' csv quote '''' encoding 'WIN1252';
 \copy tempTaxOld from '../unload/376.dat' csv quote '''' encoding 'WIN1252';

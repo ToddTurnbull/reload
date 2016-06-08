@@ -654,16 +654,7 @@ create table taxLinkNote (
 );
 
 -- skipping taxStartTemp
-
-create table taxTemp (
-  name varchar(100) not null,
-  code varchar(19) null,
-  isPreferred boolean not null,
-  definition text null,
-  created date null,
-  modified date null,
-  parentCode varchar(19) null
-);
+-- skipping taxTemp
 
 create table cioc (
   id serial primary key,
@@ -688,11 +679,7 @@ create table taxRelTemp (
   relType varchar(2) not null
 );
 
-create table taxTempOldCode (
-  code varchar(19) not null,
-  oldCode varchar(19) not null
-);
-
+-- skipping taxTempOldCode
 -- skipping taxonomy_copy
 -- skipping funding
 

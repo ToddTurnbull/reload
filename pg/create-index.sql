@@ -78,30 +78,8 @@ create index taxonomy_modified_index on taxonomy (
 
 -- skipping tempCIT
 -- skipping tempGeo
-
-create index taxtemp_code_index on taxTemp (
-  code
-);
-
-create index taxtemp_parentcode_index on taxTemp (
-  parentCode
-);
-
-create index taxtemp_modified_index on taxTemp (
-  modified
-);
-
-create index taxtemp_ispreferred_index on taxTemp (
-  isPreferred
-);
-
-create index taxtempoldcode_code_index on taxTempOldCode (
-  code
-);
-
-create index taxtempoldcode_oldcode_index on taxTempOldCode (
-  oldCode
-);
+-- skipping taxTemp
+--skipping taxTempOldCode
 
 create index temptaxnames_code_index on tempTaxNames (
   code
