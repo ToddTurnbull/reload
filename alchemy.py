@@ -16,6 +16,13 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 Base.metadata.schema = "tempdb"
+Base.metadata.naming_convention = {
+  "ix": "%(table_name)s_%(column_0_name)s_index",
+  "uq": "%(table_name)s_%(column_0_name)s_key",
+  # "ck": "%(table_name)s_%(column_0_name)s_check",
+  "fk": "%(table_name)s_%(column_0_name)s_%(referred_table_name)s_%(referred_column_0_name)s_fkey",
+  "pk": "%(table_name)s_pkey"
+}
 
 class Data(Base):
   __tablename__ = "data"
@@ -24,7 +31,10 @@ class Data(Base):
   comments = Column(String)
   recnum = Column(
     String(7),
-    CheckConstraint("left(RecNum, 3) = 'WRN'"),
+    CheckConstraint(
+      "left(RecNum, 3) = 'WRN'",
+      name = "data_recnum_check"
+    ),
     nullable=False,
     unique=True
   )
@@ -180,7 +190,7 @@ class AddressType(Base):
   name = Column(String(50), nullable=False)
 
 class Address(Base):
-  __tablename__ = "address"
+  __tablename__ = "tbladdress"
   id = Column(Integer, primary_key=True)
   addresstypeid = Column(Integer, ForeignKey("tlkpaddresstype.id"), nullable=False)
   incareof = Column(String(60))
@@ -188,7 +198,13 @@ class Address(Base):
   address = Column(String(50))
   city = Column(String(50), nullable=False)
   province = Column(String(2), default="ON")
-  postalcode = Column(String(7), CheckConstraint("postalcode ~* '[a-z][0-9][a-z] [0-9][a-z][0-9]'"))
+  postalcode = Column(
+    String(7),
+    CheckConstraint(
+      "postalcode ~* '[a-z][0-9][a-z] [0-9][a-z][0-9]'",
+      name = "tbladdress_postalcode_check"
+    )
+  )
   intersection = Column(String(255))
   unit = Column(String(10))
   unitvalue = Column(String(10))
@@ -214,7 +230,9 @@ class Address(Base):
       (latitude is null and longitude is null)
       or
       (latitude is not null and longitude is not null)
-    """),
+      """,
+      name = "tbladdress_check"
+    ),
   )
 
 class Accessibility(Base):
@@ -249,7 +267,9 @@ class Comm(Base):
       (commtypeid = 7 and value like '%.__%')
       or
       commtypeid > 7
-    """),
+      """,
+      name = "tblcomm_check"
+    ),
   )
 
 class Contact(Base):
@@ -340,8 +360,20 @@ class Org(Base):
   isactive = Column(Boolean, nullable=False, default=True)
   iscomplete = Column(Boolean, nullable=False, default=False)
   modified = Column(DateTime)
-  established = Column(String(4), CheckConstraint("established ~* '[1-2][0-9][0-9][0-9]'"))
-  bn = Column(String(15), CheckConstraint("bn ~* '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]RR[0-9][0-9][0-9][0-9]'"))
+  established = Column(
+    String(4),
+    CheckConstraint(
+      "established ~* '[1-2][0-9][0-9][0-9]'",
+      name = "org_established_check"
+    )
+  )
+  bn = Column(
+    String(15),
+    CheckConstraint(
+      "bn ~* '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]RR[0-9][0-9][0-9][0-9]'",
+      name = "org_bn_check"
+    )
+  )
   deleted = Column(DateTime)
 
 class OrgComm(Base):
@@ -462,7 +494,10 @@ class PubEntry(Base):
   entry = Column(Integer, nullable=False)
   pub_year = Column(
     Integer,
-    CheckConstraint("pub_year > 2000"),
+    CheckConstraint(
+      "pub_year > 2000",
+      name = "pub_entry_pub_year_check"
+    ),
     nullable = False
   )
   __table_args__ = (
