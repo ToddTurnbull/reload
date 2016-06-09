@@ -6,6 +6,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import DECIMAL
 from sqlalchemy import ForeignKey
 from sqlalchemy import func
+from sqlalchemy import Index
 from sqlalchemy import Integer
 from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import Sequence
@@ -134,7 +135,7 @@ class Data(Base):
 class Thes(Base):
   __tablename__ = "thes"
   id = Column(Integer, primary_key=True)
-  term = Column(String(60), nullable=False)
+  term = Column(String(60), nullable=False, index=True)
   note = Column(String, nullable=False)
   action = Column(String(6))
   cat_id = Column(Integer, ForeignKey("thes_cat.id"))
@@ -162,7 +163,7 @@ class Pub(Base):
   __tablename__ = "pub"
   id = Column(Integer, primary_key=True)
   code = Column(String(20), nullable=False, unique=True)
-  title = Column(String(50), nullable=False)
+  title = Column(String(50), nullable=False, index=True)
   isdefault = Column(Boolean, nullable=False, default=False)
   lastUpdated = Column(DateTime)
   note = Column(String)
@@ -254,7 +255,7 @@ class Comm(Base):
   __tablename__ = "tblcomm"
   id = Column(Integer, primary_key=True)
   commtypeid = Column(Integer, ForeignKey("tlkpcommtype.id"), nullable=False)
-  value = Column(String(255), nullable=False)
+  value = Column(String(255), nullable=False, index=True)
   comment = Column(String)
   __table_args__ = (
     CheckConstraint("""
@@ -279,7 +280,7 @@ class Contact(Base):
   title = Column(String(120))
   org = Column(String(90))
   comm = Column(String)
-  contacttype = Column(Integer, default=0)
+  contacttype = Column(Integer, default=0, index=True)
 
 class Service(Base):
   __tablename__ = "tblservice"
@@ -326,11 +327,11 @@ class OrgName(Base):
   __tablename__ = "tblorgname"
   id = Column(Integer, primary_key=True)
   orgnametypeid = Column(Integer, ForeignKey("tlkporgnametype.id"), nullable=False)
-  name = Column(String(100), nullable=False)
+  name = Column(String(100), nullable=False, index=True)
   parentid = Column(Integer, ForeignKey("tblorgname.id"))
   level = Column(Integer)
-  sort = Column(String(100))
-  sort_key = Column(String(100))
+  sort = Column(String(100), index=True)
+  sort_key = Column(String(100), index=True)
   added = Column(DateTime, default=func.now())
 
 class OrgNameType(Base):
@@ -341,11 +342,12 @@ class OrgNameType(Base):
 class OrgNames(Base):
   __tablename__ = "org_names"
   id = Column(Integer, primary_key=True)
-  org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
-  org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False)
+  org_id = Column(Integer, ForeignKey("org.id"), nullable=False, index=True)
+  org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False, index=True)
   added = Column(DateTime, default=func.now())
   __table_args__ = (
     UniqueConstraint("org_id", "org_name_id"),
+    Index("org_names_org_name_id_org_id_index", "org_name_id", "org_id")
   )
 
 class Org(Base):
@@ -356,9 +358,9 @@ class Org(Base):
   cic_id = Column(String(7), nullable=False, unique=True)
   updated = Column(DateTime, default=func.now())
   service_level = Column(String(60), nullable=False)
-  created = Column(DateTime, nullable=False, default=func.now())
-  isactive = Column(Boolean, nullable=False, default=True)
-  iscomplete = Column(Boolean, nullable=False, default=False)
+  created = Column(DateTime, nullable=False, default=func.now(), index=True)
+  isactive = Column(Boolean, nullable=False, default=True, index=True)
+  iscomplete = Column(Boolean, nullable=False, default=False, index=True)
   modified = Column(DateTime)
   established = Column(
     String(4),
@@ -472,7 +474,7 @@ class ThesRel(Base):
   id = Column(Integer, primary_key=True)
   thes_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
   rel_id  = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
-  rel_type = Column(String(2), nullable=False)
+  rel_type = Column(String(2), nullable=False, index=True)
   ca = Column(Integer, ForeignKey("thes_cat.id"))
   sort_key = Column(String(100))
   comments = Column(String)
@@ -502,6 +504,7 @@ class PubEntry(Base):
   )
   __table_args__ = (
     UniqueConstraint("pub_org_id", "pub_year"),
+    Index("pub_entry_pub_year_entry_index", "pub_year", "entry")
   )
 
 class Areas(Base): # see also Area for tlkparea
@@ -517,12 +520,12 @@ class Areas(Base): # see also Area for tlkparea
 class Taxonomy(Base):
   __tablename__ =  "taxonomy"
   id = Column(Integer, primary_key=True)
-  name = Column(String(100), nullable=False)
+  name = Column(String(100), nullable=False, index=True)
   code = Column(String(19), unique=True)
   ispreferred = Column(Boolean, nullable=False)
   definition = Column(String)
   created = Column(Date)
-  modified = Column(Date)
+  modified = Column(Date, index=True)
   parentid = Column(Integer, ForeignKey("taxonomy.id"))
   cicmodified = Column(DateTime)
 
@@ -679,7 +682,7 @@ class TaxRelTemp(Base):
 
 class TempTaxNames(Base):
   __tablename__ = "temptaxnames"
-  code = Column(String(19), nullable=False)
+  code = Column(String(19), nullable=False, index=True)
   name = Column(String(100), nullable=False)
   ispreferred = Column(Boolean, nullable=False)
   release = Column(String)
@@ -690,8 +693,8 @@ class TempTaxNames(Base):
 
 class TempTaxAlso(Base):
   __tablename__ = "temptaxalso"
-  code = Column(String(19), nullable=False)
-  see = Column(String(19), nullable=False)
+  code = Column(String(19), nullable=False, index=True)
+  see = Column(String(19), nullable=False, index=True)
   release = Column(String)
   # SQLAlchemy needs a primary key
   __table_args__ = (
@@ -700,8 +703,8 @@ class TempTaxAlso(Base):
 
 class TempTaxOld(Base):
   __tablename__ = "temptaxold"
-  code = Column(String(19), nullable=False)
-  old = Column(String(19), nullable=False)
+  code = Column(String(19), nullable=False, index=True)
+  old = Column(String(19), nullable=False, index=True)
   release = Column(String)
   # SQLAlchemy needs a primary key
   __table_args__ = (
@@ -762,9 +765,9 @@ class ICService(Base):
 
 class PubTree(Base):
   __tablename__ = "pub_tree"
-  id = Column(Integer, nullable=False)
-  parent = Column(Integer, nullable=False)
-  pub = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  id = Column(Integer, nullable=False, index=True)
+  parent = Column(Integer, nullable=False, index=True)
+  pub = Column(Integer, ForeignKey("pub.id"), nullable=False, index=True)
   note = Column(String)
   depth = Column(Integer, nullable=False)
   __table_args__ = (
