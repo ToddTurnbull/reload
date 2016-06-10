@@ -7,10 +7,10 @@ create function org_name_sort_keys()
   returns void
   as $$
     top_level_names = (
-      "select tblorgname.id as name_id "
+      "select id as name_id "
       "from tblorgname "
-      "where tblorgname.parentid is null "
-      "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
+      "where parentid is null "
+      "order by lower(coalesce(sort, name)) asc;"
     )
     plan = plpy.prepare(top_level_names)
     results = plpy.execute(plan)
@@ -28,7 +28,9 @@ create function org_name_sort_keys()
       ]
       update_plan = plpy.prepare(update_query, ["text", "int"])
       update_results = plpy.execute(update_plan, update_args)
-  $$ language plpythonu;
+  $$
+  language plpythonu
+  set search_path to tempdb;
 
 drop function if exists name_inserted_updated() cascade;
 create function name_inserted_updated()
@@ -38,21 +40,21 @@ create function name_inserted_updated()
     new_parent = TD["new"]["parentid"]
     if new_parent:
       select_parent = (
-        "select tblorgname.id as name_id, parent.sort_key as parent_key "
-        "from tblorgname join tblorgname as parent on tblorgname.parentid = parent.id "
-        "where tblorgname.parentid = $1 "
-        "and tblorgname.orgnametypeid = 1 "
-        "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
+        "select n.id as name_id, p.sort_key as parent_key "
+        "from tblorgname as n join tblorgname as p on n.parentid = p.id "
+        "where n.parentid = $1 "
+        "and n.orgnametypeid = 1 "
+        "order by lower(coalesce(n.sort, n.name)) asc;"
       )
       select_plan = plpy.prepare(select_parent, ["int"])
       select_results = plpy.execute(select_plan, [new_parent])
     else:
       select_parent = (
-        "select tblorgname.id as name_id "
+        "select id as name_id "
         "from tblorgname "
-        "where tblorgname.parentid is null "
-        "and tblorgname.orgnametypeid = 1 "
-        "order by lower(coalesce(tblorgname.sort, tblorgname.name)) asc;"
+        "where parentid is null "
+        "and orgnametypeid = 1 "
+        "order by lower(coalesce(sort, name)) asc;"
       )
       select_plan = plpy.prepare(select_parent)
       select_results = plpy.execute(select_plan)
@@ -74,7 +76,9 @@ create function name_inserted_updated()
       ]
       update_plan = plpy.prepare(update_query, ["text", "int"])
       update_results = plpy.execute(update_plan, update_args)
-  $$ language plpythonu;
+  $$
+  language plpythonu
+  set search_path to tempdb;
 
 drop trigger if exists name_inserted_updated on tblorgname;
 create trigger name_inserted_updated
@@ -136,7 +140,9 @@ create function name_parent_updated()
           results = plpy.execute(plan, [current_id])
           result = results[0]
           current_id = result["parentid"]
-  $$ language plpythonu;
+  $$
+  language plpythonu
+  set search_path to tempdb;
 
 drop trigger if exists name_parent_updated on tblorgname;
 create trigger name_parent_updated
@@ -166,7 +172,9 @@ create function name_sort_key_updated()
         where parentid = NEW.id;
       return null;
     end;
-  $$ language plpgsql;
+  $$
+  language plpgsql
+  set search_path to tempdb;
 
 drop trigger if exists name_sort_key_updated on tblorgname;
 create trigger name_sort_key_updated
