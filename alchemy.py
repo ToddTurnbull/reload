@@ -40,8 +40,8 @@ Base.metadata.naming_convention = {
 class Data(Base):
   __tablename__ = "data"
   recordnumber = Column(String(5), nullable=False, unique=True)
-  internalmemo = Column(String)
-  comments = Column(String)
+  internalmemo = Column(Text)
+  comments = Column(Text)
   recnum = Column(
     String(7),
     CheckConstraint(
@@ -56,9 +56,9 @@ class Data(Base):
   org3 = Column(String(70))
   org4 = Column(String(70))
   org5 = Column(String(70))
-  altorg = Column(String)
-  formerorg = Column(String)
-  xref = Column(String)
+  altorg = Column(Text)
+  formerorg = Column(Text)
+  xref = Column(Text)
   streetbuilding = Column(String(90))
   streetaddress = Column(String(90))
   streetcity = Column(String(40))
@@ -68,61 +68,61 @@ class Data(Base):
   city = Column(String(40))
   province = Column(String(25))
   postalcode = Column(String(7))
-  accessibility = Column(String)
+  accessibility = Column(Text)
   location = Column(String(60))
   intersection = Column(String(60))
-  officephone = Column(String)
-  fax = Column(String)
-  email = Column(String)
+  officephone = Column(Text)
+  fax = Column(Text)
+  email = Column(Text)
   www = Column(String(255))
-  afterhoursphone = Column(String)
-  crisisphone = Column(String)
-  tddphone = Column(String)
+  afterhoursphone = Column(Text)
+  crisisphone = Column(Text)
+  tddphone = Column(Text)
   data = Column(String(30))
-  description = Column(String)
-  pubdescription = Column(String)
-  generalinfo = Column(String)
-  bnd = Column(String)
-  otherresource = Column(String)
-  fees = Column(String)
-  hours = Column(String)
-  dates = Column(String)
-  areaserved = Column(String)
-  eligibility = Column(String)
-  application = Column(String)
-  languages = Column(String)
+  description = Column(Text)
+  pubdescription = Column(Text)
+  generalinfo = Column(Text)
+  bnd = Column(Text)
+  otherresource = Column(Text)
+  fees = Column(Text)
+  hours = Column(Text)
+  dates = Column(Text)
+  areaserved = Column(Text)
+  eligibility = Column(Text)
+  application = Column(Text)
+  languages = Column(Text)
   contact1 = Column(String(60))
   contact1title = Column(String(120))
   contact1org = Column(String(90))
-  contact1phone = Column(String)
+  contact1phone = Column(Text)
   contact2 = Column(String(60))
   contact2title = Column(String(120))
-  printedmaterial = Column(String)
+  printedmaterial = Column(Text)
   contact2org = Column(String(90))
-  contact2phone = Column(String)
+  contact2phone = Column(Text)
   contact3 = Column(String(60))
   contact3title = Column(String(120))
   contact3org = Column(String(90))
-  contact3phone = Column(String)
+  contact3phone = Column(Text)
   contact4 = Column(String(60))
   contact4title = Column(String(120))
   contact4org = Column(String(90))
-  contact4phone = Column(String)
+  contact4phone = Column(Text)
   dateestablished = Column(String(60))
   elections = Column(String(120))
-  funding = Column(String)
+  funding = Column(Text)
   ddcode = Column(String(10))
   levelofservice = Column(String(60))
-  subject = Column(String)
-  usedfor = Column(String)
-  blue = Column(String)
-  seealso = Column(String)
-  localsubjects = Column(String)
+  subject = Column(Text)
+  usedfor = Column(Text)
+  blue = Column(Text)
+  seealso = Column(Text)
+  localsubjects = Column(Text)
   typeofrecord = Column(String(2))
   qualitylevel = Column(String(20))
   tobedeleted = Column(String(20))
-  distribution = Column(String)
-  pub = Column(String)
+  distribution = Column(Text)
+  pub = Column(Text)
   sourceofinfo = Column(String(60))
   sourcetitle = Column(String(60))
   sourceorg = Column(String(60))
@@ -131,7 +131,7 @@ class Data(Base):
   sourcecity = Column(String(30))
   sourceprovince = Column(String(2))
   sourcepostalcode = Column(String(7))
-  sourcephone = Column(String)
+  sourcephone = Column(Text)
   collectedby = Column(String(40))
   datecollected = Column(String(10))
   createdby = Column(String(40))
@@ -139,7 +139,7 @@ class Data(Base):
   updatedate = Column(String(10))
   updateschedule = Column(String(10))
   historyofupdate = Column(String(10))
-  lastmodified = Column(String)
+  lastmodified = Column(Text)
   org1_sort = Column(String(100))
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, nullable=False)
@@ -148,7 +148,7 @@ class Thes(Base):
   __tablename__ = "thes"
   id = Column(Integer, primary_key=True)
   term = Column(String(60), nullable=False, index=True)
-  note = Column(String, nullable=False)
+  note = Column(Text, nullable=False)
   action = Column(String(6))
   cat_id = Column(Integer, ForeignKey("thes_cat.id"))
   sort = Column(String(6))
@@ -162,7 +162,7 @@ class ThesCat(Base):
 class ThesTree(Base):
   __tablename__ = "thes_tree"
   id = Column(Integer, primary_key=True)
-  term = Column(String, nullable=False)
+  term = Column(Text, nullable=False)
   parent_id = Column(Integer, ForeignKey("thes.id"))
   cat_id = Column(Integer, nullable=False)
 
@@ -178,7 +178,7 @@ class Pub(Base):
   title = Column(String(50), nullable=False, index=True)
   isdefault = Column(Boolean, nullable=False, default=False)
   lastUpdated = Column(DateTime)
-  note = Column(String)
+  note = Column(Text)
 
 class ThesRelated(Base):
   __tablename__ = "thes_related"
@@ -268,7 +268,7 @@ class Comm(Base):
   id = Column(Integer, primary_key=True)
   commtypeid = Column(Integer, ForeignKey("tlkpcommtype.id"), nullable=False)
   value = Column(String(255), nullable=False, index=True)
-  comment = Column(String)
+  comment = Column(Text)
   __table_args__ = (
     CheckConstraint("""
       (commtypeid in (1, 2, 3, 5, 6) and value ~* '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
@@ -291,28 +291,28 @@ class Contact(Base):
   name = Column(String(60))
   title = Column(String(120))
   org = Column(String(90))
-  comm = Column(String)
+  comm = Column(Text)
   contacttype = Column(Integer, default=0, index=True)
 
 class Service(Base):
   __tablename__ = "tblservice"
   id = Column(Integer, primary_key=True)
-  description = Column(String)
-  eligibility = Column(String)
-  info = Column(String)
-  fees = Column(String)
-  hours = Column(String)
-  dates = Column(String)
-  application = Column(String)
+  description = Column(Text)
+  eligibility = Column(Text)
+  info = Column(Text)
+  fees = Column(Text)
+  hours = Column(Text)
+  dates = Column(Text)
+  application = Column(Text)
   updated = Column(DateTime)
-  ciocdescription = Column(String)
-  cioceligibility = Column(String)
-  ciocapplication = Column(String)
+  ciocdescription = Column(Text)
+  cioceligibility = Column(Text)
+  ciocapplication = Column(Text)
 
 class Language(Base):
   __tablename__ = "tlkplanguage"
   id = Column(Integer, primary_key=True)
-  name = Column(String, nullable=False)
+  name = Column(Text, nullable=False)
 
 class ServiceLanguage(Base):
   __tablename__ = "trelservicelanguage"
@@ -325,7 +325,7 @@ class ServiceLanguage(Base):
 class Area(Base): # see also Areas for area
   __tablename__ = "tlkparea"
   id = Column(Integer, primary_key=True)
-  name = Column(String, nullable=False)
+  name = Column(Text, nullable=False)
 
 class ServiceArea(Base):
   __tablename__ = "trelservicearea"
@@ -366,7 +366,7 @@ class Org(Base):
   __tablename__ = "org"
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False)
-  update_note = Column(String)
+  update_note = Column(Text)
   cic_id = Column(String(7), nullable=False, unique=True)
   updated = Column(DateTime, default=func.now())
   service_level = Column(String(60), nullable=False)
@@ -396,7 +396,7 @@ class OrgComm(Base):
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   comm_id  = Column(Integer, ForeignKey("tblcomm.id"), nullable=False)
   added = Column(DateTime, nullable=False, default=func.now())
-  note = Column(String)
+  note = Column(Text)
 
 class OrgAddress(Base):
   __tablename__ = "org_address_rel"
@@ -413,7 +413,7 @@ class OrgContact(Base):
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   contact_id  = Column(Integer, ForeignKey("tblcontact.id"), nullable=False)
   added = Column(DateTime, nullable=False, default=func.now())
-  note = Column(String)
+  note = Column(Text)
 
 class OrgRelatedDeletions(Base):
   __tablename__ = "org_rel_del"
@@ -421,7 +421,7 @@ class OrgRelatedDeletions(Base):
   org_id = Column(Integer, nullable=False)
   rel_id = Column(Integer, nullable=False)
   added = Column(DateTime, nullable=False)
-  note = Column(String)
+  note = Column(Text)
   deleted  = Column(DateTime, nullable=False)
   table_id = Column(Integer, nullable=False)
 
@@ -431,13 +431,13 @@ class OrgService(Base):
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   service_id = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
   added = Column(DateTime, nullable=False, default=func.now())
-  note = Column(String)
+  note = Column(Text)
 
 class OrgDeletions(Base):
   __tablename__ = "org_del"
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, nullable=False)
-  update_note = Column(String)
+  update_note = Column(Text)
   cic_id = Column(String(7), nullable=False, unique=True)
   updated = Column(DateTime)
   service_level = Column(String(60))
@@ -455,7 +455,7 @@ class PubOrg(Base):
   )
   deleted = Column(DateTime)
   isActive = Column(Boolean, nullable=False, default=True)
-  xml = Column(String)
+  xml = Column(Text)
   __table_args__ = (
     UniqueConstraint("pub_id", "org_id"),
   )
@@ -467,10 +467,10 @@ class Thesaurus(Base):
   use = Column(String(100))
   woo = Column(String(1))
   eq = Column(String(100))
-  uf = Column(String)
-  sn = Column(String)
+  uf = Column(Text)
+  sn = Column(Text)
   bt = Column(String(100))
-  nt = Column(String)
+  nt = Column(Text)
   rt = Column(String(150))
   ca = Column(String(50))
   input = Column(String(50))
@@ -479,7 +479,7 @@ class Thesaurus(Base):
   cr = Column(String(50))
   up = Column(String(50))
   sort = Column(String(100))
-  comments = Column(String)
+  comments = Column(Text)
 
 class ThesRel(Base):
   __tablename__ =  "thes_rel"
@@ -489,7 +489,7 @@ class ThesRel(Base):
   rel_type = Column(String(2), nullable=False, index=True)
   ca = Column(Integer, ForeignKey("thes_cat.id"))
   sort_key = Column(String(100))
-  comments = Column(String)
+  comments = Column(Text)
 
 class OrgThes(Base):
   __tablename__ =  "org_thes"
@@ -535,7 +535,7 @@ class Taxonomy(Base):
   name = Column(String(100), nullable=False, index=True)
   code = Column(String(19), unique=True)
   ispreferred = Column(Boolean, nullable=False)
-  definition = Column(String)
+  definition = Column(Text)
   created = Column(Date)
   modified = Column(Date, index=True)
   parentid = Column(Integer, ForeignKey("taxonomy.id"))
@@ -578,7 +578,7 @@ class OrgNotes(Base):
   id = Column(Integer, primary_key=True)
   orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
   notetype = Column(Integer, ForeignKey("orgnotetypes.id"), nullable=False)
-  note = Column(String, nullable=False)
+  note = Column(Text, nullable=False)
   added = Column(DateTime, nullable=False, default=func.now())
   modified = Column(DateTime)
   isactive = Column(Boolean, nullable=False, default=True)
@@ -667,7 +667,7 @@ class OrgTaxLink(Base):
 class TaxLinkNote(Base):
   __tablename__ = "taxlinknote"
   id = Column(Integer, primary_key=True)
-  note = Column(String, nullable=False)
+  note = Column(Text, nullable=False)
 
 class Cioc(Base):
   __tablename__ = "cioc"
@@ -683,7 +683,7 @@ class CiocExport(Base):
   __tablename__ = "ciocexport"
   id = Column(Integer, primary_key=True)
   updated = Column(DateTime)
-  notes = Column(String, nullable=False)
+  notes = Column(Text, nullable=False)
 
 class TaxRelTemp(Base):
   __tablename__ = "taxreltemp"
@@ -697,7 +697,7 @@ class TempTaxNames(Base):
   code = Column(String(19), nullable=False, index=True)
   name = Column(String(100), nullable=False)
   ispreferred = Column(Boolean, nullable=False)
-  release = Column(String)
+  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "name"),
@@ -707,7 +707,7 @@ class TempTaxAlso(Base):
   __tablename__ = "temptaxalso"
   code = Column(String(19), nullable=False, index=True)
   see = Column(String(19), nullable=False, index=True)
-  release = Column(String)
+  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "see"),
@@ -717,7 +717,7 @@ class TempTaxOld(Base):
   __tablename__ = "temptaxold"
   code = Column(String(19), nullable=False, index=True)
   old = Column(String(19), nullable=False, index=True)
-  release = Column(String)
+  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "old"),
@@ -726,10 +726,10 @@ class TempTaxOld(Base):
 class TempTaxDetails(Base):
   __tablename__ = "temptaxdetails"
   code = Column(String(19), primary_key=True) # SQLAlchemy needs a primary key
-  definition = Column(String, nullable=False)
+  definition = Column(Text, nullable=False)
   created = Column(Date, nullable=False)
   modified = Column(Date, nullable=False)
-  release = Column(String)
+  release = Column(Text)
 
 class PubTax(Base):
   __tablename__ = "pubtax"
@@ -780,7 +780,7 @@ class PubTree(Base):
   id = Column(Integer, nullable=False, index=True)
   parent = Column(Integer, nullable=False, index=True)
   pub = Column(Integer, ForeignKey("pub.id"), nullable=False, index=True)
-  note = Column(String)
+  note = Column(Text)
   depth = Column(Integer, nullable=False)
   __table_args__ = (
     PrimaryKeyConstraint("id", "parent"),
@@ -805,7 +805,7 @@ class OrgSite(Base):
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   site_id = Column(Integer, ForeignKey("site.id"), nullable=False)
   name = Column(String(100))
-  note = Column(String)
+  note = Column(Text)
   label = Column(String(100))
   type = Column(Integer, nullable=False, default=3)
   __table_args__ = (
@@ -853,12 +853,12 @@ class External(Base):
   name = Column(String(50), nullable=False)
   field = Column(String(50), nullable=False)
   cic = Column(String(50), nullable=False)
-  note = Column(String, nullable=False)
+  note = Column(Text, nullable=False)
 
 class ExternalData(Base):
   __tablename__ = "external_data"
   id = Column(Integer, primary_key=True)
   external_type = Column(Integer, ForeignKey("external.id"), nullable=False)
   cic_id = Column(Integer, nullable=False)
-  data = Column(String, nullable=False)
+  data = Column(Text, nullable=False)
   external_id = Column(String(50), nullable=False)
