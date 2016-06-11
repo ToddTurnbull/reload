@@ -12,10 +12,12 @@ from sqlalchemy import Integer
 from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy import Sequence
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy import UniqueConstraint
 
 from sqlalchemy.ext.declarative import declarative_base
 
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
@@ -144,6 +146,7 @@ class Data(Base):
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, nullable=False)
 
+# delete?
 class Thes(Base):
   __tablename__ = "thes"
   id = Column(Integer, primary_key=True)
@@ -154,11 +157,13 @@ class Thes(Base):
   sort = Column(String(6))
   
 
+# delete?
 class ThesCat(Base):
   __tablename__ = "thes_cat"
   id = Column(Integer, primary_key=True)
   category = Column(String(30), nullable=False)
 
+# delete?
 class ThesTree(Base):
   __tablename__ = "thes_tree"
   id = Column(Integer, primary_key=True)
@@ -166,6 +171,7 @@ class ThesTree(Base):
   parent_id = Column(Integer, ForeignKey("thes.id"))
   cat_id = Column(Integer, nullable=False)
 
+# delete?
 class City(Base):
   __tablename__ = "city"
   id = Column(Integer, primary_key=True)
@@ -180,6 +186,7 @@ class Pub(Base):
   lastUpdated = Column(DateTime)
   note = Column(Text)
 
+# delete?
 class ThesRelated(Base):
   __tablename__ = "thes_related"
   thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
@@ -188,6 +195,7 @@ class ThesRelated(Base):
     PrimaryKeyConstraint("thes_id", "related_id"),
   )
 
+# delete?
 class ThesReject(Base):
   __tablename__ = "thes_reject"
   thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
@@ -234,6 +242,14 @@ class Address(Base):
   ismappable = Column(Boolean)
   latitude = Column(DECIMAL(11,9))
   longitude = Column(DECIMAL(11,9))
+  
+  type = relationship("AddressType") # many-to-one
+  access = relationship(
+    "Accessibility",
+    secondary="tempdb.treladdressaccessibility",
+    uselist=False # one-to-one
+  )
+
   __table_args__ = (
     CheckConstraint("""
       (utm_x is null and utm_y is null)
@@ -269,6 +285,9 @@ class Comm(Base):
   commtypeid = Column(Integer, ForeignKey("tlkpcommtype.id"), nullable=False)
   value = Column(String(255), nullable=False, index=True)
   comment = Column(Text)
+
+  type = relationship("CommType") # many-to-one
+
   __table_args__ = (
     CheckConstraint("""
       (commtypeid in (1, 2, 3, 5, 6) and value ~* '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
@@ -309,6 +328,18 @@ class Service(Base):
   cioceligibility = Column(Text)
   ciocapplication = Column(Text)
 
+  language = relationship(
+    "Language",
+    secondary = "tempdb.trelservicelanguage",
+    uselist = False # one-to-one
+  )
+
+  area = relationship(
+    "Area",
+    secondary = "tempdb.trelservicearea",
+    uselist = False # one-to-one
+  )
+
 class Language(Base):
   __tablename__ = "tlkplanguage"
   id = Column(Integer, primary_key=True)
@@ -345,6 +376,13 @@ class OrgName(Base):
   sort = Column(String(100), index=True)
   sort_key = Column(String(100), index=True)
   added = Column(DateTime, default=func.now())
+  
+  type = relationship("OrgNameType") # many-to-one
+  orgs = relationship(
+    "Org",
+    secondary = "tempdb.org_names",
+    back_populates = "names"
+  )
 
 class OrgNameType(Base):
   __tablename__ = "tlkporgnametype"
@@ -389,6 +427,12 @@ class Org(Base):
     )
   )
   deleted = Column(DateTime)
+  
+  names = relationship(
+    "OrgName",
+    secondary = "tempdb.org_names",
+    back_populates = "orgs"
+  )
 
 class OrgComm(Base):
   __tablename__ = "org_comm_rel"
