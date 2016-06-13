@@ -249,6 +249,11 @@ class Address(Base):
     secondary="tempdb.treladdressaccessibility",
     uselist=False # one-to-one
   )
+  org = relationship(
+    "Org",
+    secondary = "tempdb.org_address_rel",
+    uselist = False # Org-to-Address is one-to-many
+  )
 
   __table_args__ = (
     CheckConstraint("""
@@ -287,6 +292,11 @@ class Comm(Base):
   comment = Column(Text)
 
   type = relationship("CommType") # many-to-one
+  org = relationship(
+    "Org",
+    secondary = "tempdb.org_comm_rel",
+    uselist = False # Org-to-Comm is one-to-many
+  )
 
   __table_args__ = (
     CheckConstraint("""
@@ -313,6 +323,12 @@ class Contact(Base):
   comm = Column(Text)
   contacttype = Column(Integer, default=0, index=True)
 
+  org = relationship(
+    "Org",
+    secondary = "tempdb.org_contact_rel",
+    uselist = False # Org-to-Contact is one-to-many
+  )
+
 class Service(Base):
   __tablename__ = "tblservice"
   id = Column(Integer, primary_key=True)
@@ -333,11 +349,15 @@ class Service(Base):
     secondary = "tempdb.trelservicelanguage",
     uselist = False # one-to-one
   )
-
   area = relationship(
     "Area",
     secondary = "tempdb.trelservicearea",
     uselist = False # one-to-one
+  )
+  org = relationship(
+    "Org",
+    secondary = "tempdb.org_service_rel",
+    uselist = False # Org-to-Service is one-to-one
   )
 
 class Language(Base):
@@ -378,10 +398,11 @@ class OrgName(Base):
   added = Column(DateTime, default=func.now())
   
   type = relationship("OrgNameType") # many-to-one
-  orgs = relationship(
+  org = relationship(
     "Org",
     secondary = "tempdb.org_names",
-    back_populates = "names"
+    back_populates = "names",
+    uselist = False # Org-to-Orgname is one-to-many
   )
 
 class OrgNameType(Base):
@@ -431,7 +452,27 @@ class Org(Base):
   names = relationship(
     "OrgName",
     secondary = "tempdb.org_names",
-    back_populates = "orgs"
+    back_populates = "org"
+  )
+  comms = relationship(
+    "Comm",
+    secondary = "tempdb.org_comm_rel",
+    back_populates = "org"
+  )
+  addresses = relationship(
+    "Address",
+    secondary = "tempdb.org_address_rel",
+    back_populates = "org"
+  )
+  contacts = relationship(
+    "Contact",
+    secondary = "tempdb.org_contact_rel",
+    back_populates = "org"
+  )
+  service = relationship(
+    "Service",
+    secondary = "tempdb.org_service_rel",
+    uselist = False # Org-to-Service is one-to-one
   )
 
 class OrgComm(Base):
