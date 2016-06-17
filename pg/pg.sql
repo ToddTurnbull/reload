@@ -7,7 +7,7 @@ create domain tempdb.multiocc as text;
 
 \i create-table.sql
 
-\i copy.sql
+\i exec-copy.sql
 
 \i alter-table.sql
 
@@ -22,7 +22,7 @@ create domain tempdb.multiocc as text;
 \i create-trigger-org-rel-del.sql
 \i create-trigger-tblorgname.sql
 
-\i setval.sql
+\i exec-setval.sql
 select set_autoincrement();
 
 select org_name_sort_keys()
