@@ -737,7 +737,7 @@ create table ic_agency_sites (
   agencyid integer not null,
   siteid integer not null,
   CND varchar(8) null,
-  site_name varchar(200) null,
+  site_name varchar(200) not null, -- changed from null
   site_name_level integer null,
   site_name_other varchar(3) null,
   unique(agencyid, siteid)
@@ -754,7 +754,7 @@ create table ic_site_services (
 
 create table pub_tree (
   id integer not null,
-  parent integer not null,
+  parent integer not null, -- why not a foreign key?
   pub integer not null,
   note text null,
   depth integer not null,
