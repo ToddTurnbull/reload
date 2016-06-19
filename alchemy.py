@@ -22,6 +22,7 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
 import config
+
 pg = "postgresql://{user}:{password}@localhost:{port}/{database}"
 db = pg.format(**config.db)
 engine = create_engine(db, echo=False)
@@ -41,6 +42,8 @@ Base.metadata.naming_convention = {
 
 class Data(Base):
   __tablename__ = "data"
+
+  # Columns
   recordnumber = Column(String(5), nullable=False, unique=True)
   internalmemo = Column(Text)
   comments = Column(Text)
@@ -149,6 +152,8 @@ class Data(Base):
 # delete?
 class Thes(Base):
   __tablename__ = "thes"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   term = Column(String(60), nullable=False, index=True)
   note = Column(Text, nullable=False)
@@ -156,16 +161,19 @@ class Thes(Base):
   cat_id = Column(Integer, ForeignKey("thes_cat.id"))
   sort = Column(String(6))
 
-
 # delete?
 class ThesCat(Base):
   __tablename__ = "thes_cat"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   category = Column(String(30), nullable=False)
 
 # delete?
 class ThesTree(Base):
   __tablename__ = "thes_tree"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   term = Column(Text, nullable=False)
   parent_id = Column(Integer, ForeignKey("thes.id"))
@@ -174,11 +182,15 @@ class ThesTree(Base):
 # delete?
 class City(Base):
   __tablename__ = "city"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   city = Column(String(20), nullable=False)
 
 class Pub(Base):
   __tablename__ = "pub"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   code = Column(String(20), nullable=False, unique=True)
   title = Column(String(50), nullable=False, index=True)
@@ -186,6 +198,7 @@ class Pub(Base):
   lastupdated = Column(DateTime)
   note = Column(Text)
 
+  # Relationships
   taxonomy = relationship( # many-to-many
     "TaxLinkNote",
     secondary = "tempdb.pubtax"
@@ -194,29 +207,50 @@ class Pub(Base):
 # delete?
 class ThesRelated(Base):
   __tablename__ = "thes_related"
-  thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
-  related_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
   __table_args__ = (
     PrimaryKeyConstraint("thes_id", "related_id"),
   )
 
+  # Columns
+  thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
+  related_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
+
 # delete?
 class ThesReject(Base):
   __tablename__ = "thes_reject"
-  thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
-  accept_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("thes_id", "accept_id"),
   )
 
+  # Columns
+  thes_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
+  accept_id = Column(Integer, ForeignKey("thes.id"), nullable=False)
+
 class AddressType(Base):
   __tablename__ = "tlkpaddresstype"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(50), nullable=False)
 
 class Address(Base):
   __tablename__ = "tbladdress"
+  __table_args__ = (
+    CheckConstraint("""
+      (utm_x is null and utm_y is null)
+      or
+      (utm_x is not null and utm_y is not null)
+      or
+      (latitude is null and longitude is null)
+      or
+      (latitude is not null and longitude is not null)
+      """,
+      name = "tbladdress_check"
+    ),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   addresstypeid = Column(Integer, ForeignKey("tlkpaddresstype.id"), nullable=False)
   incareof = Column(String(60))
@@ -248,6 +282,7 @@ class Address(Base):
   latitude = Column(DECIMAL(11,9))
   longitude = Column(DECIMAL(11,9))
 
+  # Relationships
   type = relationship("AddressType") # many-to-one
   access = relationship(
     "Accessibility",
@@ -260,49 +295,29 @@ class Address(Base):
     uselist = False # Org-to-Address is one-to-many
   )
 
-  __table_args__ = (
-    CheckConstraint("""
-      (utm_x is null and utm_y is null)
-      or
-      (utm_x is not null and utm_y is not null)
-      or
-      (latitude is null and longitude is null)
-      or
-      (latitude is not null and longitude is not null)
-      """,
-      name = "tbladdress_check"
-    ),
-  )
-
 class Accessibility(Base):
   __tablename__ = "tlkpaccessibility"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(100), nullable=False)
 
 class AddressAccessibility(Base):
   __tablename__ = "treladdressaccessibility"
+
+  # Columns
   addressid = Column(Integer, ForeignKey("tbladdress.id"), primary_key=True)
   accessibilityid = Column(Integer, ForeignKey("tlkpaccessibility.id"), nullable=False)
 
 class CommType(Base):
   __tablename__ = "tlkpcommtype"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(50), nullable=False, unique=True)
 
 class Comm(Base):
   __tablename__ = "tblcomm"
-  id = Column(Integer, primary_key=True)
-  commtypeid = Column(Integer, ForeignKey("tlkpcommtype.id"), nullable=False)
-  value = Column(String(255), nullable=False, index=True)
-  comment = Column(Text)
-
-  type = relationship("CommType") # many-to-one
-  org = relationship(
-    "Org",
-    secondary = "tempdb.org_comm_rel",
-    uselist = False # Org-to-Comm is one-to-many
-  )
-
   __table_args__ = (
     CheckConstraint("""
       (commtypeid in (1, 2, 3, 5, 6) and value ~* '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]')
@@ -319,8 +334,24 @@ class Comm(Base):
     ),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  commtypeid = Column(Integer, ForeignKey("tlkpcommtype.id"), nullable=False)
+  value = Column(String(255), nullable=False, index=True)
+  comment = Column(Text)
+
+  # Relationships
+  type = relationship("CommType") # many-to-one
+  org = relationship(
+    "Org",
+    secondary = "tempdb.org_comm_rel",
+    uselist = False # Org-to-Comm is one-to-many
+  )
+
 class Contact(Base):
   __tablename__ = "tblcontact"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(60))
   title = Column(String(120))
@@ -328,6 +359,7 @@ class Contact(Base):
   comm = Column(Text)
   contacttype = Column(Integer, default=0, index=True)
 
+  # Relationships
   org = relationship(
     "Org",
     secondary = "tempdb.org_contact_rel",
@@ -337,8 +369,11 @@ class Contact(Base):
     "Comm",
     secondary = "tempdb.contact_comm"
   )
+
 class Service(Base):
   __tablename__ = "tblservice"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   description = Column(Text)
   eligibility = Column(Text)
@@ -352,6 +387,7 @@ class Service(Base):
   cioceligibility = Column(Text)
   ciocapplication = Column(Text)
 
+  # Relationships
   language = relationship(
     "Language",
     secondary = "tempdb.trelservicelanguage",
@@ -370,32 +406,42 @@ class Service(Base):
 
 class Language(Base):
   __tablename__ = "tlkplanguage"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(Text, nullable=False)
 
 class ServiceLanguage(Base):
   __tablename__ = "trelservicelanguage"
-  serviceid = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
-  languageid = Column(Integer, ForeignKey("tlkplanguage.id"), nullable=False)
   __table_args__ = (
     PrimaryKeyConstraint("serviceid", "languageid"),
   )
 
+  # Columns
+  serviceid = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
+  languageid = Column(Integer, ForeignKey("tlkplanguage.id"), nullable=False)
+
 class Area(Base): # see also Areas for area
   __tablename__ = "tlkparea"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(Text, nullable=False)
 
 class ServiceArea(Base):
   __tablename__ = "trelservicearea"
-  serviceid = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
-  areaid = Column(Integer, ForeignKey("tlkparea.id"), nullable=False)
   __table_args__ = (
     PrimaryKeyConstraint("serviceid", "areaid"),
   )
 
+  # Columns
+  serviceid = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
+  areaid = Column(Integer, ForeignKey("tlkparea.id"), nullable=False)
+
 class OrgName(Base):
   __tablename__ = "tblorgname"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   orgnametypeid = Column(Integer, ForeignKey("tlkporgnametype.id"), nullable=False)
   name = Column(String(100), nullable=False, index=True)
@@ -405,6 +451,7 @@ class OrgName(Base):
   sort_key = Column(String(100), index=True)
   added = Column(DateTime, default=func.now())
 
+  # Relationships
   type = relationship("OrgNameType") # many-to-one
   org = relationship(
     "Org",
@@ -415,25 +462,31 @@ class OrgName(Base):
 
 class OrgNameType(Base):
   __tablename__ = "tlkporgnametype"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   type = Column(String(20), nullable=False)
 
 class OrgNames(Base):
   __tablename__ = "org_names"
-  id = Column(Integer, primary_key=True)
-  org_id = Column(Integer, ForeignKey("org.id"), nullable=False, index=True)
-  org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False, index=True)
-  added = Column(DateTime, default=func.now())
-  
-  name = relationship("OrgName") # many-to-one
-  
   __table_args__ = (
     UniqueConstraint("org_id", "org_name_id"),
     Index("org_names_org_name_id_org_id_index", "org_name_id", "org_id")
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, ForeignKey("org.id"), nullable=False, index=True)
+  org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False, index=True)
+  added = Column(DateTime, default=func.now())
+  
+  # Relationships
+  name = relationship("OrgName") # many-to-one
+
 class Org(Base):
   __tablename__ = "org"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, ForeignKey("tblorgname.id"), nullable=False)
   update_note = Column(Text)
@@ -460,6 +513,7 @@ class Org(Base):
   )
   deleted = Column(DateTime)
 
+  # Relationships
   names = relationship( # official names, one-to-many
     "OrgName",
     secondary = "tempdb.org_names",
@@ -530,6 +584,8 @@ class Org(Base):
 
 class OrgComm(Base):
   __tablename__ = "org_comm_rel"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   comm_id  = Column(Integer, ForeignKey("tblcomm.id"), nullable=False)
@@ -538,6 +594,8 @@ class OrgComm(Base):
 
 class OrgAddress(Base):
   __tablename__ = "org_address_rel"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   address_id  = Column(Integer, ForeignKey("tbladdress.id"), nullable=False)
@@ -547,6 +605,8 @@ class OrgAddress(Base):
 
 class OrgContact(Base):
   __tablename__ = "org_contact_rel"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   contact_id  = Column(Integer, ForeignKey("tblcontact.id"), nullable=False)
@@ -555,6 +615,8 @@ class OrgContact(Base):
 
 class OrgRelatedDeletions(Base):
   __tablename__ = "org_rel_del"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, nullable=False)
   rel_id = Column(Integer, nullable=False)
@@ -565,6 +627,8 @@ class OrgRelatedDeletions(Base):
 
 class OrgService(Base):
   __tablename__ = "org_service_rel"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   service_id = Column(Integer, ForeignKey("tblservice.id"), nullable=False)
@@ -573,6 +637,8 @@ class OrgService(Base):
 
 class OrgDeletions(Base):
   __tablename__ = "org_del"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_name_id = Column(Integer, nullable=False)
   update_note = Column(Text)
@@ -582,6 +648,11 @@ class OrgDeletions(Base):
 
 class PubOrg(Base):
   __tablename__ = "pub_org"
+  __table_args__ = (
+    UniqueConstraint("pub_id", "org_id"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   pub_id = Column(Integer, ForeignKey("pub.id"), nullable=False)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
@@ -594,10 +665,8 @@ class PubOrg(Base):
   deleted = Column(DateTime)
   isactive = Column(Boolean, nullable=False, default=True)
   xml = Column(Text)
-  __table_args__ = (
-    UniqueConstraint("pub_id", "org_id"),
-  )
 
+  # Relationships
   contact = relationship(
     "Contact",
     secondary = "tempdb.org_contact_rel",
@@ -608,6 +677,8 @@ class PubOrg(Base):
 
 class Thesaurus(Base):
   __tablename__ =  "thes_original"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   de = Column(String(100), nullable = False, unique=True)
   use = Column(String(100))
@@ -627,6 +698,7 @@ class Thesaurus(Base):
   sort = Column(String(100))
   comments = Column(Text)
 
+  # Relationships
   relations = relationship( # one-to-many
     "ThesRel",
     primaryjoin = "Thesaurus.id == ThesRel.thes_id"
@@ -646,6 +718,8 @@ class Thesaurus(Base):
 
 class ThesRel(Base):
   __tablename__ =  "thes_rel"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   thes_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
   rel_id  = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
@@ -654,6 +728,7 @@ class ThesRel(Base):
   sort_key = Column(String(100))
   comments = Column(Text)
 
+  # Relationships
   related = relationship( # many-to-one
     "Thesaurus",
     primaryjoin = "ThesRel.rel_id == Thesaurus.id"
@@ -661,16 +736,24 @@ class ThesRel(Base):
 
 class OrgThes(Base):
   __tablename__ =  "org_thes"
-  id = Column(Integer, primary_key=True)
-  org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
-  thes_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
-  official_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
   __table_args__ = (
     UniqueConstraint("org_id", "thes_id", "official_id"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
+  thes_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
+  official_id = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
+
 class PubEntry(Base):
   __tablename__ =  "pub_entry"
+  __table_args__ = (
+    UniqueConstraint("pub_org_id", "pub_year"),
+    Index("pub_entry_pub_year_entry_index", "pub_year", "entry")
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   pub_org_id = Column(Integer, ForeignKey("pub_org.id"), nullable=False)
   entry = Column(Integer, nullable=False)
@@ -682,27 +765,27 @@ class PubEntry(Base):
     ),
     nullable = False
   )
-  __table_args__ = (
-    UniqueConstraint("pub_org_id", "pub_year"),
-    Index("pub_entry_pub_year_entry_index", "pub_year", "entry")
-  )
 
 class Areas(Base): # see also Area for tlkparea
   __tablename__ =  "area"
+  __table_args__ = (
+    UniqueConstraint("name", "locatedin"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(255), nullable=False)
   locatedin = Column(Integer, ForeignKey("area.id"))
   alt = String(255)
 
+  # Relationships
   surrounds = relationship("Areas") # one-to-many
   surrounded_by = relationship("Areas", remote_side=[id]) # many-to-one
 
-  __table_args__ = (
-    UniqueConstraint("name", "locatedin"),
-  )
-
 class Taxonomy(Base):
   __tablename__ =  "taxonomy"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(100), nullable=False, index=True)
   code = Column(String(19), unique=True)
@@ -713,6 +796,7 @@ class Taxonomy(Base):
   parentid = Column(Integer, ForeignKey("taxonomy.id"))
   cicmodified = Column(DateTime)
 
+  # Relationships
   relations = relationship( # one-to-many
     "TaxRel",
     primaryjoin = "Taxonomy.id == TaxRel.taxid"
@@ -720,22 +804,26 @@ class Taxonomy(Base):
 
 class TaxRel(Base):
   __tablename__ =  "taxrel"
+  __table_args__ = (
+    UniqueConstraint("taxid", "relid"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   taxid = Column(Integer, ForeignKey("taxonomy.id"), nullable=False)
   relid = Column(Integer, ForeignKey("taxonomy.id"), nullable=False)
   reltype = Column(String(2), nullable=False)
 
+  # Relationships
   related = relationship( # one-to-one
     "Taxonomy",
     primaryjoin = "TaxRel.relid == Taxonomy.id"
   )
 
-  __table_args__ = (
-    UniqueConstraint("taxid", "relid"),
-  )
-
 class Locations(Base): # same as tempdb.area/Areas?
   __tablename__ =  "locations"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   officialname = Column(String(100), nullable=False)
   locatedin = Column(Integer, ForeignKey("locations.id"))
@@ -744,20 +832,26 @@ class Locations(Base): # same as tempdb.area/Areas?
 
 class PubGroupName(Base):
   __tablename__ =  "pubgroupname"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   groupname = Column(String(50), nullable=False)
 
 class PubGroup(Base):
   __tablename__ =  "pubgroup"
-  id = Column(Integer, primary_key=True)
-  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
-  groupid = Column(Integer, ForeignKey("pubgroupname.id"), nullable=False)
   __table_args__ = (
     UniqueConstraint("pubid", "groupid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  groupid = Column(Integer, ForeignKey("pubgroupname.id"), nullable=False)
+
 class OrgNotes(Base):
   __tablename__ =  "orgnotes"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
   notetype = Column(Integer, ForeignKey("orgnotetypes.id"), nullable=False)
@@ -768,25 +862,35 @@ class OrgNotes(Base):
   ispublic = Column(Boolean, nullable=False, default=True)
   alertdate = Column(Date)
 
+  # Relationships
   type = relationship("OrgNoteTypes") # many-to-one
 
 class OrgNoteTypes(Base):
   __tablename__ =  "orgnotetypes"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   value = Column(String(30), nullable=False)
 
 class PubThes(Base):
   __tablename__ =  "pubthes"
-  id = Column(Integer, primary_key=True)
-  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
-  thesid = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
-  isactive = Column(Boolean, nullable=False, default=True)
   __table_args__ = (
     UniqueConstraint("pubid", "thesid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  thesid = Column(Integer, ForeignKey("thes_original.id"), nullable=False)
+  isactive = Column(Boolean, nullable=False, default=True)
+
 class TaxGroups(Base):
   __tablename__ = "taxgroups"
+  __table_args__ = (
+    UniqueConstraint("taxgroup", "taxid"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   taxgroup = Column(Integer, nullable=False)
   taxid = Column(Integer, ForeignKey("taxonomy.id"), nullable=False)
@@ -795,65 +899,75 @@ class TaxGroups(Base):
   added = Column(DateTime, nullable=False, default=func.now())
   islocal = Column(Boolean, nullable=False, default=False)
   modified = Column(DateTime)
-  __table_args__ = (
-    UniqueConstraint("taxgroup", "taxid"),
-  )
 
 class TempTaxGroup(Base):
   __tablename__ = "temptaxgroup"
-  groupid = Column(Integer, nullable=False)
-  taxcode = Column(String(13), nullable=False)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("groupid", "taxcode"),
   )
 
+  # Columns
+  groupid = Column(Integer, nullable=False)
+  taxcode = Column(String(13), nullable=False)
+
 class TaxChanges(Base):
   __tablename__ = "taxchanges"
+  # SQLAlchemy needs a primary key
+  __table_args__ = (
+    PrimaryKeyConstraint("changetype", "oldcode", "newcode"),
+  )
+
+  # Columns
   changetype = Column(Integer, nullable=False)
   oldcode = Column(String(13), nullable=False)
   newcode = Column(String(13), nullable=False)
   oldname = Column(String(60), nullable=False)
   newname = Column(String(60), nullable=False)
   dateus = Column(String(10), nullable=False)
-  # SQLAlchemy needs a primary key
-  __table_args__ = (
-    PrimaryKeyConstraint("changetype", "oldcode", "newcode"),
-  )
 
 class OrgUpdated(Base):
   __tablename__ = "orgupdated"
-  id = Column(Integer, primary_key=True)
-  orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
-  updated = Column(DateTime, nullable=False)
   __table_args__ = (
     UniqueConstraint("orgid", "updated"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
+  updated = Column(DateTime, nullable=False)
+
 class TaxLink(Base):
   __tablename__ = "taxlink"
-  id = Column(Integer, primary_key=True)
-  linkid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
-  taxid = Column(Integer, ForeignKey("taxonomy.id"), nullable=False)
   __table_args__ = (
     UniqueConstraint("linkid", "taxid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  linkid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
+  taxid = Column(Integer, ForeignKey("taxonomy.id"), nullable=False)
+
 class OrgTaxLink(Base):
   __tablename__ = "orgtaxlink"
-  id = Column(Integer, primary_key=True)
-  orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
-  linkid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
-  added = Column(DateTime, default=func.now())
   __table_args__ = (
     UniqueConstraint("orgid", "linkid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  orgid = Column(Integer, ForeignKey("org.id"), nullable=False)
+  linkid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
+  added = Column(DateTime, default=func.now())
+
 class TaxLinkNote(Base):
   __tablename__ = "taxlinknote"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   note = Column(Text, nullable=False)
 
+  # Relationships
   taxonomy = relationship( # many-to-many
     "Taxonomy",
     secondary = "tempdb.taxlink"
@@ -861,22 +975,28 @@ class TaxLinkNote(Base):
 
 class Cioc(Base):
   __tablename__ = "cioc"
-  id = Column(Integer, primary_key=True)
-  pid = Column(Integer, ForeignKey("pub.id"), nullable=False)
-  ptype = Column(Integer, nullable=False)
-  xid = Column(Integer, ForeignKey("ciocexport.id"), nullable=False)
   __table_args__ = (
     UniqueConstraint("xid", "ptype", "pid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  pid = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  ptype = Column(Integer, nullable=False)
+  xid = Column(Integer, ForeignKey("ciocexport.id"), nullable=False)
+
 class CiocExport(Base):
   __tablename__ = "ciocexport"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   updated = Column(DateTime)
   notes = Column(Text, nullable=False)
 
 class TaxRelTemp(Base):
   __tablename__ = "taxreltemp"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   taxcode = Column(String(19), nullable=False)
   relcode = Column(String(19), nullable=False)
@@ -884,37 +1004,45 @@ class TaxRelTemp(Base):
 
 class TempTaxNames(Base):
   __tablename__ = "temptaxnames"
-  code = Column(String(19), nullable=False, index=True)
-  name = Column(String(100), nullable=False)
-  ispreferred = Column(Boolean, nullable=False)
-  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "name"),
   )
 
+  # Columns
+  code = Column(String(19), nullable=False, index=True)
+  name = Column(String(100), nullable=False)
+  ispreferred = Column(Boolean, nullable=False)
+  release = Column(Text)
+
 class TempTaxAlso(Base):
   __tablename__ = "temptaxalso"
-  code = Column(String(19), nullable=False, index=True)
-  see = Column(String(19), nullable=False, index=True)
-  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "see"),
   )
 
+  # Columns
+  code = Column(String(19), nullable=False, index=True)
+  see = Column(String(19), nullable=False, index=True)
+  release = Column(Text)
+
 class TempTaxOld(Base):
   __tablename__ = "temptaxold"
-  code = Column(String(19), nullable=False, index=True)
-  old = Column(String(19), nullable=False, index=True)
-  release = Column(Text)
   # SQLAlchemy needs a primary key
   __table_args__ = (
     PrimaryKeyConstraint("code", "old"),
   )
 
+  # Columns
+  code = Column(String(19), nullable=False, index=True)
+  old = Column(String(19), nullable=False, index=True)
+  release = Column(Text)
+
 class TempTaxDetails(Base):
   __tablename__ = "temptaxdetails"
+
+  # Columns
   code = Column(String(19), primary_key=True) # SQLAlchemy needs a primary key
   definition = Column(Text, nullable=False)
   created = Column(Date, nullable=False)
@@ -923,16 +1051,20 @@ class TempTaxDetails(Base):
 
 class PubTax(Base):
   __tablename__ = "pubtax"
-  id = Column(Integer, primary_key=True)
-  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
-  taxid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
-  added = Column(DateTime, nullable=False, default=func.now())
   __table_args__ = (
     UniqueConstraint("pubid", "taxid"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  pubid = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  taxid = Column(Integer, ForeignKey("taxlinknote.id"), nullable=False)
+  added = Column(DateTime, nullable=False, default=func.now())
+
 class ICAgency(Base):
   __tablename__ = "ic_agencies"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   orgid = Column(Integer, ForeignKey("org.id"), nullable=False, unique=True)
   cnd = Column(String(8))
@@ -941,6 +1073,7 @@ class ICAgency(Base):
   name_2 = Column(String(100))
   name_level_2 = Column(Integer)
 
+  # Relationships
   org = relationship( # one-to-one
     "Org",
     back_populates = "ic_agency"
@@ -952,6 +1085,11 @@ class ICAgency(Base):
 
 class ICSite(Base):
   __tablename__ = "ic_agency_sites"
+  __table_args__ = (
+    UniqueConstraint("agencyid", "siteid"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   agencyid = Column(Integer, ForeignKey("ic_agencies.id"), nullable=False)
   siteid = Column(Integer, ForeignKey("org.id"), nullable=False)
@@ -960,6 +1098,7 @@ class ICSite(Base):
   site_name_level = Column(Integer)
   site_name_other = Column(String(3))
 
+  # Relationships
   agency = relationship( # many-to-one
     "ICAgency",
     back_populates = "sites"
@@ -973,18 +1112,20 @@ class ICSite(Base):
     back_populates = "ic_site"
     )
 
-  __table_args__ = (
-    UniqueConstraint("agencyid", "siteid"),
-  )
-
 class ICService(Base):
   __tablename__ = "ic_site_services"
+  __table_args__ = (
+    UniqueConstraint("siteid", "serviceid"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   siteid = Column(Integer, ForeignKey("ic_agency_sites.id"), nullable=False)
   serviceid = Column(Integer, ForeignKey("org.id"), nullable=False)
   service_name_1 = Column(String(200))
   service_name_2 = Column(String(200))
 
+  # Relationships
   site = relationship( # many-to-one
     "ICSite",
     back_populates = "services"
@@ -994,31 +1135,32 @@ class ICService(Base):
     back_populates = "ic_service"
     )
 
-  __table_args__ = (
-    UniqueConstraint("siteid", "serviceid"),
-  )
-
 class PubTree(Base):
   __tablename__ = "pub_tree"
+  __table_args__ = (
+    PrimaryKeyConstraint("id", "parent"),
+  )
+
+  # Columns
   id = Column(Integer, nullable=False, index=True)
   parent = Column(Integer, nullable=False, index=True) # why not a foreign key?
   pub = Column(Integer, ForeignKey("pub.id"), nullable=False, index=True) # rename to pub_id
   note = Column(Text)
   depth = Column(Integer, nullable=False)
 
+  # Relationships
   publication = relationship("Pub") # many-to-one, rename to pub
-
-  __table_args__ = (
-    PrimaryKeyConstraint("id", "parent"),
-  )
 
 class Site(Base):
   __tablename__ = "site"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_address_id = Column(Integer, ForeignKey("org_address_rel.id"), nullable=False, unique=True)
   context_id = Column(Integer, nullable=False, default=1)
   code = Column(String(20))
 
+  # Relationships
   address = relationship(
     "Address",
     secondary = "tempdb.org_address_rel",
@@ -1027,12 +1169,19 @@ class Site(Base):
 
 class OrgTree(Base):
   __tablename__ = "org_tree"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   super_id = Column(Integer, ForeignKey("org_tree.id"), nullable=False)
 
 class OrgSite(Base):
   __tablename__ = "org_site"
+  __table_args__ = (
+    UniqueConstraint("org_id", "site_id", "label"),
+  )
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_id = Column(Integer, ForeignKey("org.id"), nullable=False)
   site_id = Column(Integer, ForeignKey("site.id"), nullable=False)
@@ -1041,6 +1190,7 @@ class OrgSite(Base):
   label = Column(String(100))
   type = Column(Integer, nullable=False, default=3)
 
+  # Relationships
   site = relationship("Site") # many-to-one
   org = relationship("Org") # many-to-one
   org_name = relationship(
@@ -1049,41 +1199,48 @@ class OrgSite(Base):
     uselist = False # one-to-one
   )
 
-  __table_args__ = (
-    UniqueConstraint("org_id", "site_id", "label"),
-  )
-
 class OrgSiteName(Base):
   __tablename__ = "org_site_name"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   org_site_id = Column(Integer, ForeignKey("org_site.id"), nullable=False)
   org_names_id = Column(Integer, ForeignKey("org_names.id"), nullable=False)
 
 class OrgThesPub(Base):
   __tablename__ = "org_thes_pub"
-  id = Column(Integer, primary_key=True)
-  org_thes_id = Column(Integer, ForeignKey("org_thes.id"), nullable=False)
-  pub_id = Column(Integer, ForeignKey("pub.id"), nullable=False)
-  is_active = Column(Boolean, nullable=False, default=True)
   __table_args__ = (
     UniqueConstraint("org_thes_id", "pub_id"),
   )
 
+  # Columns
+  id = Column(Integer, primary_key=True)
+  org_thes_id = Column(Integer, ForeignKey("org_thes.id"), nullable=False)
+  pub_id = Column(Integer, ForeignKey("pub.id"), nullable=False)
+  is_active = Column(Boolean, nullable=False, default=True)
+
 class TempTaxActive(Base):
   __tablename__ = "temptaxactive"
+
+  # Columns
   code = Column(String(25), primary_key=True) # SQLAlchemy needs a primary key
 
 class TempCCAC(Base):
   __tablename__ = "tempccac"
+
+  # Columns
   ext = Column(String(10), primary_key=True) # SQLAlchemy needs a primary key
   # Foreign key added for SQLAlchemy
   id = Column(String(10), ForeignKey("org.cic_id"), nullable=False)
   name = Column(String(200), nullable=False)
   
+  # Relationships
   org = relationship("Org")
 
 class ContactComm(Base):
   __tablename__ = "contact_comm"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   contact_id = Column(Integer, ForeignKey("tblcontact.id"), nullable=False)
   comm_id = Column(Integer, ForeignKey("tblcomm.id"), nullable=False)
@@ -1093,6 +1250,8 @@ class ContactComm(Base):
 
 class External(Base):
   __tablename__ = "external"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   name = Column(String(50), nullable=False)
   field = Column(String(50), nullable=False)
@@ -1101,6 +1260,8 @@ class External(Base):
 
 class ExternalData(Base):
   __tablename__ = "external_data"
+
+  # Columns
   id = Column(Integer, primary_key=True)
   external_type = Column(Integer, ForeignKey("external.id"), nullable=False)
   cic_id = Column(Integer, nullable=False)
