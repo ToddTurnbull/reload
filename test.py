@@ -1,104 +1,63 @@
 from alchemy import *
+
 from collections import OrderedDict
+from contextlib import contextmanager
+from functools import wraps
+
+import click
 import json
 
-print("Starting session")
-session = Session()
-print("Don't forget to session.close()")
+# http://docs.sqlalchemy.org/en/rel_1_0/orm/session_basics.html
+@contextmanager
+def session_scope():
+  """Provide a transactional scope around a series of operations."""
+  click.echo("I am session_scope()")
+  session = Session()
+  try:
+    yield session
+    session.commit()
+  except:
+    session.rollback()
+    raise
+  finally:
+    click.echo("Closing session")
+    session.close()
 
-def jsonify(sort_keys=False, indent=2):
+def transactional(query_function):
+  """Decorate a function to use session_scope()
+  query_function should have only named arguments, including "session"
+  """
+  click.echo("I am transactional({})".format(query_function.__name__))
+  @wraps(query_function)
+  def wrapper(**kwargs):
+    click.echo("I am transactional.wrapper({})".format(query_function.__name__))
+    click.echo(query_function.__doc__)
+    with session_scope() as session:
+      return query_function(session=session, **kwargs)
+  return wrapper
+
+def jsonify(dict_function):
   """Decorate a function to return JSON instead of a dict"""
-  def jsonified(dict_function):
-    def wrapper(*args, **kwargs):
-      dict_ = dict_function(*args, **kwargs)
-      return json.dumps(dict_, sort_keys=sort_keys, indent=indent)
-    return wrapper
-  return jsonified
+  click.echo("I am jsonify()")
+  @wraps(dict_function)
+  def wrapper(*args, **kwargs):
+    dict_ = dict_function(*args, **kwargs)
+    return json.dumps(dict_, sort_keys=False, indent=2)
+  return wrapper
 
-class MetaTest(object):
-  """Do stuff with Base.metadata"""
-  def schema(self):
-    """Show schema"""
-    return Base.metadata.schema
-
-class AddressTest(object):
-  """Create an Address object from tbladdress.id"""
-  def __init__(self, address_id):
-    self.address_id = address_id
-  def query(self):
-    """Get address item from database"""
-    return session.query(Address).filter_by(id=self.address_id).one()
-
-class OrgTest(object):
-  """Create an Org object from org.id"""
-  def __init__(self, org_id):
-    self.org_id = org_id
-  def query(self):
-    """Get org item from database"""
-    return session.query(Org).filter_by(cic_id=self.org_id).one()
-
-class ThesaurusTest(object):
-  """Create a Thesaurus object from thes_original.id"""
-  def __init__(self, thes_id):
-    self.thes_id = thes_id
-  def query(self):
-    """Get thesaurus item from database"""
-    return session.query(Thesaurus).filter_by(id=self.thes_id).one()
-
-class AreasTest(object):
-  """Create an Areas object from area.name"""
-  def __init__(self, area_name):
-    self.area_name = area_name
-  def query(self):
-    """Get area item from database"""
-    return session.query(Areas).filter_by(name=self.area_name).one()
-
-class TaxonomyTest(object):
-  """Create a Taxonomy object from taxonomy.code"""
-  def __init__(self, code):
-    self.code = code
-  def query(self):
-    """Get taxonomy item from database"""
-    return session.query(Taxonomy).filter_by(code=self.code).one()
-
-class PubTest(object):
-  """Create a Publication item from pub.id"""
-  def __init__(self, pub_id):
-    self.pub_id = pub_id
-  def query(self):
-    """Get publication from database"""
-    return session.query(Pub).filter_by(id=self.pub_id).one()
-
-class AgencyTest(object):
-  """Create an Agency item from ic_agencies.id"""
-  def __init__(self, agency_id):
-    self.agency_id = agency_id
-  def query(self):
-    """Get agency from database"""
-    return session.query(ICAgency).filter_by(id=self.agency_id).one()
-
-class SiteTest(object):
-  """Create a Site item from site.id"""
-  def __init__(self, site_id):
-    self.site_id = site_id
-  def query(self):
-    """Get site from database"""
-    return session.query(Site).filter_by(id=self.site_id).one()
-
-def test_meta():
-  """Do stuff with MetaTest"""
-  meta = MetaTest()
-  return "The schema is '{}'".format(meta.schema())
-
-def test_address(address_id):
+@transactional
+def address(session=None, address_id=5571):
   """Test joining tbladdress to tlkpaddressaccessibility"""
-  address = AddressTest(address_id).query()
-  return "Address {} is '{}'".format(address_id, address.access.name)
+  address = session.query(Address).filter_by(id=address_id).one()
+  return_value = "Address {} is '{}'".format(address_id, address.access.name)
+  print("Return value should be: {}".format(address.access.name))
+  return return_value
 
-@jsonify()
-def test_org(org_id):
+@transactional
+@jsonify
+def test_org(session=None, org_id="WRN2000"):
   """Test joining org to: names, contacts, publications, addresses, etc"""
-  org = OrgTest(org_id).query()
+  org = session.query(Org).filter_by(cic_id=org_id).one()
   return OrderedDict([
     ("Names", [name.name for name in org.names]),
     ("Alternate Names", [name.name for name in org.alt_names]),
@@ -122,10 +81,11 @@ def test_org(org_id):
     ("Agency", "Is an agency" if org.ic_agency else "Is not an agency")
   ])
   
-@jsonify(sort_keys=True)
-def test_thesaurus(thes_id):
+@transactional
+@jsonify
+def test_thesaurus(session=None, thes_id=0):
   """Test joining thesaurus term to its related terms"""
-  thes = ThesaurusTest(thes_id).query()
+  thes = session.query(Thesaurus).filter_by(id=thes_id).one()
   return OrderedDict([
     ("Term", thes.de),
     ("Related", [(rel.rel_type, rel.related.de) for rel in thes.relations]),
@@ -134,10 +94,11 @@ def test_thesaurus(thes_id):
     ("Broader terms", [bt.related.de for bt in thes.broader_terms])
   ])
 
-@jsonify()
-def test_taxonomy(code):
+@transactional
+@jsonify
+def test_taxonomy(session=None, code="BD"):
   """Test joining taxonomy term to its related terms"""
-  tax = TaxonomyTest(code).query()
+  tax = session.query(Taxonomy).filter_by(code=code).one()
   return OrderedDict([
     ("Term", tax.name),
     ("Related", [
@@ -146,19 +107,21 @@ def test_taxonomy(code):
     ])
   ])
 
-@jsonify()
-def test_pub(pub_id):
+@transactional
+@jsonify
+def test_pub(session=None, pub_id=527):
   """Test joining publication to its taxonomy terms"""
-  pub = PubTest(pub_id).query()
+  pub = session.query(Pub).filter_by(id=pub_id).one()
   return OrderedDict([
     ("Title", pub.title),
     ("Taxonomy", [tax.note for tax in pub.taxonomy])
   ])
 
-@jsonify()
-def test_agency(agency_id):
+@transactional
+@jsonify
+def test_agency(session=None, agency_id=1214):
   """Test joining agency to its org, sites, services"""
-  agency = AgencyTest(agency_id).query()
+  agency = session.query(ICAgency).filter_by(id=agency_id).one()
   return OrderedDict([
     ("Agency", agency.id),
     ("Org", [name.name for name in agency.org.names]),
@@ -172,19 +135,21 @@ def test_agency(agency_id):
     ])
   ])
 
-@jsonify()
-def test_site(site_id):
+@transactional
+@jsonify
+def test_site(session=None, site_id=89):
   """Test joining site to its address"""
-  site = SiteTest(site_id).query()
+  site = session.query(Site).filter_by(id=site_id).one()
   return OrderedDict([
     ("Site", site.id),
     ("Address", (site.address.address, site.address.city))
   ])
 
-@jsonify()
-def test_org_site(org_id):
+@transactional
+@jsonify
+def test_org_site(session=None, org_id="WRN5575"):
   """List sites for an org record"""
-  org = OrgTest(org_id).query()
+  org = session.query(Org).filter_by(cic_id=org_id).one()
   return OrderedDict([
     ("Org", [name.name for name in org.names]),
     ("Sites", [OrderedDict([
@@ -197,20 +162,12 @@ def test_org_site(org_id):
   ])
 
 if __name__ == "__main__":
-  print(test_meta())
-  print(test_address(5571))
-  print(test_org("WRN4535"))
-  print(test_thesaurus(3))
-  print(test_taxonomy("BD"))
-  print(test_pub(527))
-  print(test_org("WRN2000"))
-  print(test_agency(1214))
-  print(test_site(89))
-  print(test_org_site("WRN5575"))
+  print(address())
+  print(test_org())
+  print(test_thesaurus(thes_id=3))
+  print(test_taxonomy(code="BD"))
+  print(test_pub(pub_id=527))
+  print(test_agency(agency_id=1214))
+  print(test_site())
+  print(test_org_site())
 
-  area = AreasTest("Waterloo Region").query()
-  print [includes.name for includes in area.surrounds]
-  print area.surrounded_by.name
-  print area.surrounded_by.surrounded_by.name
-
-  session.close()
