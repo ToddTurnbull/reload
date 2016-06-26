@@ -1,15 +1,18 @@
 drop function if exists search_org_name(search_string text);
 create function search_org_name(search_string text)
-  returns table(name text)
+  returns table(full_name text, name text, org_id text)
   as $$
-    plpy.notice("I am search_org_name()")
-    search = (
-      "select name "
-      "from tblorgname "
-      "where to_tsvector('english', tblorgname.name) @@ plainto_tsquery('english', $1) "
-      "order by coalesce(sort, name)"
-    )
-    plan = plpy.prepare(search, ["text"])
-    results = plpy.execute(plan, [search_string])
-    return (r["name"] for r in results)
-  $$ language plpythonu;
+    select
+      org_name_full(org.id) as full_name,
+      tblorgname.name as name,
+      org.cic_id as org_id
+    from
+      tblorgname
+        join org_names on tblorgname.id = org_names.org_name_id
+        join org on org_names.org_id = org.id
+    where
+      to_tsvector('english', tblorgname.name) @@ plainto_tsquery('english', search_string)
+    order by
+      tblorgname.sort_key, org.cic_id;
+  $$ language sql;
+
