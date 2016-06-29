@@ -73,9 +73,7 @@ def test_org(session=None, org_id="WRN2000"):
     ("Notes", [note.note for note in org.notes]),
     ("Update History", [str(update.updated) for update in org.updates]),
     ("Taxonomy", [
-      {
-        link.note: [tax.name for tax in link.taxonomy]
-      }
+      {link.note: [tax.name for tax in link.taxonomy]}
       for link in org.taxonomy_links
     ]),
     ("Agency", "Is an agency" if org.ic_agency else "Is not an agency")
