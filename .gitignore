@@ -1,3 +1,5 @@
 unload
 config.py
 *.pyc
+__pycache__
+
