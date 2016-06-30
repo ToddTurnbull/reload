@@ -1,7 +1,6 @@
 from sqlalchemy import Boolean
 from sqlalchemy import CheckConstraint
 from sqlalchemy import Column
-from sqlalchemy import create_engine
 from sqlalchemy import Date
 from sqlalchemy import DateTime
 from sqlalchemy import DECIMAL
@@ -18,17 +17,6 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
-
-import config
-
-pg = "postgresql://{user}:{password}@localhost:{port}/{database}"
-db = pg.format(**config.db)
-engine = create_engine(db, echo=False)
-
-session_factory = sessionmaker(bind=engine)
-Session = scoped_session(session_factory)
 
 Base = declarative_base()
 Base.metadata.schema = "tempdb"
