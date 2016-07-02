@@ -35,8 +35,9 @@ def session_scope():
     session.close()
 
 def transactional(query_function):
-  """Decorate a function to use session_scope()
-  query_function should have only named arguments, including "session"
+  """
+  Decorate a function to use session_scope()
+  query_function has only named arguments, including "session"
   """
   click.echo("I am transactional({})".format(query_function.__name__))
   @wraps(query_function)
