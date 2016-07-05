@@ -19,11 +19,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from functools import partial
-def with_schema(table, schema=None):
+def name_table(table, schema=None):
   """Return a schema qualified table name"""
   return "{}.{}".format(schema, table) if schema else table
 
-table_name = partial(with_schema, schema="tempdb") # to do: use config.schema
+with_schema = partial(name_table, schema="tempdb") # to do: use config.schema
  
 Base = declarative_base()
 Base.metadata.schema = "tempdb" # to do: use config.schema
@@ -196,7 +196,7 @@ class Pub(Base):
   # Relationships
   taxonomy = relationship( # many-to-many
     "TaxLinkNote",
-    secondary = table_name("pubtax")
+    secondary = with_schema("pubtax")
   )
 
 # delete?
@@ -281,12 +281,12 @@ class Address(Base):
   type = relationship("AddressType") # many-to-one
   access = relationship(
     "Accessibility",
-    secondary= table_name("treladdressaccessibility"),
+    secondary= with_schema("treladdressaccessibility"),
     uselist=False # one-to-one
   )
   org = relationship(
     "Org",
-    secondary = table_name("org_address_rel"),
+    secondary = with_schema("org_address_rel"),
     uselist = False # Org-to-Address is one-to-many
   )
 
@@ -339,7 +339,7 @@ class Comm(Base):
   type = relationship("CommType") # many-to-one
   org = relationship(
     "Org",
-    secondary = table_name("org_comm_rel"),
+    secondary = with_schema("org_comm_rel"),
     uselist = False # Org-to-Comm is one-to-many
   )
 
@@ -357,12 +357,12 @@ class Contact(Base):
   # Relationships
   org = relationship(
     "Org",
-    secondary = table_name("org_contact_rel"),
+    secondary = with_schema("org_contact_rel"),
     uselist = False # Org-to-Contact is one-to-many
   )
   comms = relationship(
     "Comm",
-    secondary = table_name("contact_comm")
+    secondary = with_schema("contact_comm")
   )
 
 class Service(Base):
@@ -385,17 +385,17 @@ class Service(Base):
   # Relationships
   language = relationship(
     "Language",
-    secondary = table_name("trelservicelanguage"),
+    secondary = with_schema("trelservicelanguage"),
     uselist = False # one-to-one
   )
   area = relationship(
     "Area",
-    secondary = table_name("trelservicearea"),
+    secondary = with_schema("trelservicearea"),
     uselist = False # one-to-one
   )
   org = relationship(
     "Org",
-    secondary = table_name("org_service_rel"),
+    secondary = with_schema("org_service_rel"),
     uselist = False # Org-to-Service is one-to-one
   )
 
@@ -450,7 +450,7 @@ class OrgName(Base):
   type = relationship("OrgNameType") # many-to-one
   org = relationship(
     "Org",
-    secondary = table_name("org_names"),
+    secondary = with_schema("org_names"),
     back_populates = "names",
     uselist = False # Org-to-Orgname is one-to-many
   )
@@ -511,7 +511,7 @@ class Org(Base):
   # Relationships
   names = relationship( # official names, one-to-many
     "OrgName",
-    secondary = table_name("org_names"),
+    secondary = with_schema("org_names"),
     back_populates = "org",
     primaryjoin = "and_(Org.id == OrgNames.org_id, OrgName.orgnametypeid == 1)",
     order_by = "OrgName.level"
@@ -524,41 +524,41 @@ class Org(Base):
   )
   comms = relationship( # one-to-many
     "Comm",
-    secondary = table_name("org_comm_rel"),
+    secondary = with_schema("org_comm_rel"),
     back_populates = "org"
   )
   addresses = relationship( # one-to-many
     "Address",
-    secondary = table_name("org_address_rel"),
+    secondary = with_schema("org_address_rel"),
     back_populates = "org"
   )
   contacts = relationship( # one-to-many
     "Contact",
-    secondary = table_name("org_contact_rel"),
+    secondary = with_schema("org_contact_rel"),
     back_populates = "org"
   )
   service = relationship(
     "Service",
-    secondary = table_name("org_service_rel"),
+    secondary = with_schema("org_service_rel"),
     uselist = False # Org-to-Service is one-to-one
   )
   # http://docs.sqlalchemy.org/en/rel_1_0/orm/basic_relationships.html#association-object
   pubs = relationship("PubOrg") # one-to-many
   thes_all = relationship( # many-to-many
     "Thesaurus",
-    secondary = table_name("org_thes"),
+    secondary = with_schema("org_thes"),
     secondaryjoin = "OrgThes.thes_id == Thesaurus.id"
   )
   thes_official = relationship( # many-to-many
     "Thesaurus",
-    secondary = table_name("org_thes"),
+    secondary = with_schema("org_thes"),
     secondaryjoin = "and_(OrgThes.thes_id == Thesaurus.id, OrgThes.thes_id == OrgThes.official_id)"
   )
   notes = relationship("OrgNotes") # one-to-many
   updates = relationship("OrgUpdated") # one-to-many
   taxonomy_links = relationship(
     "TaxLinkNote",
-    secondary = table_name("orgtaxlink")
+    secondary = with_schema("orgtaxlink")
   )
   ic_agency = relationship( # one-to-one
     "ICAgency",
@@ -664,7 +664,7 @@ class PubOrg(Base):
   # Relationships
   contact = relationship(
     "Contact",
-    secondary = table_name("org_contact_rel"),
+    secondary = with_schema("org_contact_rel"),
     uselist = False # PubOrg-to-Contact is one-to-one
   )
   # http://docs.sqlalchemy.org/en/rel_1_0/orm/basic_relationships.html#association-object
@@ -965,7 +965,7 @@ class TaxLinkNote(Base):
   # Relationships
   taxonomy = relationship( # many-to-many
     "Taxonomy",
-    secondary = table_name("taxlink")
+    secondary = with_schema("taxlink")
   )
 
 class Cioc(Base):
@@ -1158,7 +1158,7 @@ class Site(Base):
   # Relationships
   address = relationship(
     "Address",
-    secondary = table_name("org_address_rel"),
+    secondary = with_schema("org_address_rel"),
     uselist = False # one-to-one: org_address_id is unique
   )
 
@@ -1190,7 +1190,7 @@ class OrgSite(Base):
   org = relationship("Org") # many-to-one
   org_name = relationship(
     "OrgNames", # org_names
-    secondary = table_name("org_site_name"),
+    secondary = with_schema("org_site_name"),
     uselist = False # one-to-one
   )
 
