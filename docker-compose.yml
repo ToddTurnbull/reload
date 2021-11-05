@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+
+  db:
+    build: .
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./unload:/unload/
+      - ./sql/init_scripts:/docker-entrypoint-initdb.d/
