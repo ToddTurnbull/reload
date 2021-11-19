@@ -11,3 +11,7 @@ services:
     volumes:
       - ./unload:/unload/
       - ./sql/init_scripts:/docker-entrypoint-initdb.d/
+      - data:/var/lib/postgresql/data/
+
+volumes:
+  data:
